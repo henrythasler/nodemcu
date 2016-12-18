@@ -38,6 +38,17 @@ function wifi_monitor(config)
            print( "Hostname: " .. wifi.sta.gethostname() )
            print( "Channel: " .. wifi.getchannel() )
 
+          sntp.sync('192.168.178.1',
+            function(sec,usec,server)
+              tm = rtctime.epoch2cal(rtctime.get())
+              date =string.format("%04d-%02d-%02d %02d:%02d:%02d", tm["year"], tm["mon"], tm["day"], tm["hour"], tm["min"], tm["sec"])
+              print(string.format("ntp sync with %s ok: %s UTC/GMT", server, date))
+            end,
+            function(err)
+              print('failed! '..err)
+            end
+          )
+
            -- run http server
            if run_lc( "httpserver" ) == false then
              print( "Script not found: httpserver" )

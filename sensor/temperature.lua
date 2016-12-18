@@ -26,18 +26,20 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
           --raw = adc.readvdd33()
 
           local data = {}
-          data.timestamp = tmr.now()
+          sec, usec = rtctime.get()
+          data.timestamp = sec
           data.raw = raw
           data.voltage = raw/1024*3.3
           data.value = 3528.15*298.15 / (3528.15 + math.floor( (1024-raw)*2440/(raw*1000) )*298.15 )
+          data.value = tonumber(string.format("%.1f", data.value))
           data.unit = "°C"
-          sensordata.outside.temperature = data.value..data.unit
+          sensordata.outside.temperature = data.value
           ok, json = pcall(cjson.encode, data)
           if not ok then
             print("failed to encode!")
           end
 
-          m:publish("sensor/outside/temperature",json,0,1)
+          m:publish("home/outside/temperature",json,0,1)
         end)
       end,
       function(client, reason)
