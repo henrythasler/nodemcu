@@ -1,0 +1,10 @@
+cfg={}
+cfg.wifi = {}
+cfg.wifi.ssid = "myap"
+cfg.wifi.pwd = "0000"
+cfg.wifi.save = false
+cfg.hostname = "node01"
+cfg.mqtt = {}
+cfg.mqtt.broker = {}
+cfg.mqtt.broker.host = "192.168.178.1"
+cfg.mqtt.broker.port = 1883
