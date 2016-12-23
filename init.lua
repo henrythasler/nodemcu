@@ -1,5 +1,3 @@
-local cfg_file = "config"
-
 function compile_lua(filename)
   if file.open(filename .. ".lua") then
     file.close()
@@ -22,21 +20,36 @@ function run_lc(filename)
   end
 end
 
+function run_lua(filename)
+  if file.open( filename .. ".lua" ) then
+    file.close()
+    dofile( filename .. ".lua" )
+    return true
+  else
+    print( filename .. ".lua not found." )
+    return false
+  end
+end
+
 function wifi_monitor(config)
   local connected = false
-   tmr.alarm (1, 1000, tmr.ALARM_AUTO, function ()
+  local retry = 0
+   tmr.alarm (0, 1000, tmr.ALARM_AUTO, function ()
       if wifi.sta.getip ( ) == nil then
-         print ("Waiting for Wifi connection")
+         print ("Waiting for WLAN connection to '" ..cfg.wifi.ssid.."'")
+         retry = retry+1
          gpio.write(0,1-gpio.read(0));
+         if(retry > 10) then node.restart() end
          if connected == true then connected = false end
       else
          if connected ~= true then
            connected = true
            gpio.write( 0,0 )
-           print( "Connected" )
+           print( "WLAN - connected" )
            print( "IP: " .. wifi.sta.getip() )
            print( "Hostname: " .. wifi.sta.gethostname() )
            print( "Channel: " .. wifi.getchannel() )
+           print( "Signal Strength: " .. wifi.sta.getrssi())
 
           sntp.sync('192.168.178.1',
             function(sec,usec,server)
@@ -66,6 +79,7 @@ end
 
 
 -- ### main part
+local cfg_file = "config"
 
 -- compile config file
 compile_lua(cfg_file)
@@ -90,7 +104,8 @@ wifi.sta.sethostname( cfg.hostname )
 -- Connect to existing station given in config
 wifi.setmode( wifi.STATION )
 wifi.sta.config( cfg.wifi )
-wifi.sta.autoconnect( 1 )
+wifi.sta.connect()
+--wifi.sta.autoconnect( 1 )
 
 -- monitor wifi connection and show status via LED
 -- setup other servers on connect
