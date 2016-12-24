@@ -34,6 +34,8 @@ end
 m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
       function(client)
         print("MQTT - connected to ".. cfg.mqtt.broker.host..":"..cfg.mqtt.broker.port)
+        --m:subscribe("flash",0, function(conn) print("subscribe success") end)
+
         tmr.alarm (1, 2000, tmr.ALARM_AUTO, function ()
           raw = adc.read(0)
           --raw = adc.readvdd33()
@@ -42,8 +44,8 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
           sec, usec = rtctime.get()
           data.timestamp = sec
           data.raw = raw
-          data.voltage = (raw-16.)/(1024.)*5.
-          data.value = 3528.15*298.15 / (3528.15 + log( (1024.-raw)*2440./(raw*1000.) )*298.15) - 273.15
+          data.voltage = (raw-16.)*(.578/(665-13))*(328.+92.)/92.
+          data.value = 3528.15*298.15 / (3528.15 + log( (5.-data.voltage)*2440./(data.voltage*1000.) )*298.15) - 273.15
           data.value = tonumber(string.format("%.1f", data.value))
           data.unit = "°C"
           sensordata.outside.temperature = data.value
