@@ -63,12 +63,17 @@ function wifi_monitor(config)
           )
 
            -- run http server
-           if run_lc( "httpserver" ) == false then
-             print( "Script not found: httpserver" )
-           end
+--           if run_lc( "httpserver" ) == false then
+--             print( "Script not found: httpserver" )
+--           end
 
            -- run sensors
            if run_lc( "temperature" ) == false then
+             print( "Script not found: temperature" )
+           end
+
+           -- run flash daemon
+           if run_lc( "flashdaemon" ) == false then
              print( "Script not found: temperature" )
            end
 
@@ -97,6 +102,7 @@ end
 
 compile_lua("httpserver")
 compile_lua("temperature")
+compile_lua("flashdaemon")
 
 -- setup general configuration
 wifi.sta.sethostname( cfg.hostname )

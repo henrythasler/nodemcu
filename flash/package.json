@@ -1,0 +1,21 @@
+{
+  "name": "nodemcu-flash",
+  "version": "0.0.1",
+  "description": "Flash your nodemcu via nodejs",
+  "main": "flash.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henrythasler/nodemcu.git"
+  },
+  "keywords": [
+    "nodemcu",
+    "flash",
+    "esp8266"
+  ],
+  "author": "Henry Thasler",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/henrythasler/nodemcu/issues"
+  },
+  "homepage": "https://github.com/henrythasler/nodemcu#readme"
+}

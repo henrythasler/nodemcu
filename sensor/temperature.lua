@@ -44,7 +44,7 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
           sec, usec = rtctime.get()
           data.timestamp = sec
           data.raw = raw
-          data.voltage = (raw-16.)*(.578/(665-13))*(328.+92.)/92.
+          data.voltage = (raw*0.0008870693-0.011525455)*(328.+92.)/92.
           data.value = 3528.15*298.15 / (3528.15 + log( (5.-data.voltage)*2440./(data.voltage*1000.) )*298.15) - 273.15
           data.value = tonumber(string.format("%.1f", data.value))
           data.unit = "°C"
