@@ -24,8 +24,9 @@ sudo apt install nodejs
 * `config.lua` - all config data is stored in this file
 
 ### `/flash`
- * `flashdaemon.lua` - lua-script to handle file uploads, commands. Returns a status-html. Run that file on your nodemcu after wifi is connected.
- * `status.lua` - generate status.html on nodemcu. Called by `flashdaemon.lua`.
+ * `flashdaemon.lua` - lua-script to handle file uploads, commands. Run that file on your nodemcu after wifi is connected.
+ * `flash.js` - nodejs-script to upload files to nodemcu
+ * `status.lua` - generate status.html on nodemcu.
 
 ### `/sensor`
  * `temperature.lua` - convert reading from ADC0 to temperature value and send result to MQTT broker.

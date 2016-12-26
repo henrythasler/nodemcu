@@ -40,9 +40,9 @@ function average(data)
 end
 
 local counter = 0
-local sample_interval = 5
-local transmit_interval = 30
-local ringbuffer = {pos=1, size=20, data={}}
+local sample_interval = 2
+local transmit_interval = 60
+local ringbuffer = {pos=1, size=120, data={}}
 
 -- for TLS: m:connect("192.168.11.118", secure-port, 1)
 m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
@@ -60,26 +60,34 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
           if counter == 0 then
             local data = {}
             sec, usec = rtctime.get()
-            
-            local raw = average(ringbuffer.data) 
+
+            local raw = average(ringbuffer.data)
             data.timestamp = sec
             data.raw = tonumber(string.format("%.2f", raw))
             data.voltage = (raw*0.0008870693-0.011525455)*(328.+92.)/92.
             data.voltage = tonumber(string.format("%.4f", data.voltage))
             data.value = 3528.15*298.15 / (3528.15 + log( (5.-data.voltage)*2440./(data.voltage*1000.) )*298.15) - 273.15
-            data.value = tonumber(string.format("%.1f", data.value))
+            data.value = tonumber(string.format("%.01f", data.value))
             data.unit = "°C"
             sensordata.outside.temperature = data.value
             ok, json = pcall(cjson.encode, data)
             if not ok then
               print("failed to encode!")
             end
-          
             m:publish("home/out/temp",json,0,1)
             m:publish("home/out/temp/value",data.value,0,1)
+
+            -- publish some status info
+            local status = {}
+            status.heap = node.heap()
+            majorVer, minorVer, devVer, status.chipid, status.flashid, status.flashsize, flashmode, flashspeed = node.info()
+            status.version = string.format("%i.%i",majorVer, minorVer)
+            ok, json = pcall(cjson.encode, status)
+            m:publish("home/out/status",json,0,0)
           end
           counter = counter + sample_interval
           if counter >= transmit_interval then counter = 0 end
+          collectgarbage()
         end)
       end,
       function(client, reason)
