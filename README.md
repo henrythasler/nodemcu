@@ -15,7 +15,7 @@ stuff you would need to play with a nodemcu (ESP8266) iot device
 # install nodejs
 ```
 curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-sudo apt-get install -y nodejs
+sudo apt install nodejs
 ```
 
 # module overview

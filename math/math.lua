@@ -19,6 +19,13 @@ function log_atanh(x)
   return result
 end
 
+function average(data)
+  local sum = 0
+  for i = 1, #data do
+    sum = sum + data[i]
+  end
+  return (sum/#data)
+end
 
 values = {0.5, 1., 2., 3., 4., 5., 10.}
 log = {-0.69314718056, 0, 0.69314718056, 1.09861228867, 1.38629436112, 1.60943791243, 2.302585093}
@@ -26,3 +33,7 @@ log = {-0.69314718056, 0, 0.69314718056, 1.09861228867, 1.38629436112, 1.6094379
 for i, value in ipairs(values) do
   print(string.format("log(%f)=%f (log_atanh: %f) delta=%f", value, log[i], log_atanh(value), log[i]- log_atanh(value)) )
 end
+
+local testset = {avg=5.2562, data={3.2, 4.1, 5.001, 6.98, 7}}
+local avg = average(testset.data)
+print(string.format("average()=%f - precalculated=%f", avg, testset.avg))
