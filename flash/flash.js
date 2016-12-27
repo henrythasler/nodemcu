@@ -1,4 +1,9 @@
 "use strict";
+/*
+nodemcu flashtool
+Author: Henry Thasler
+*/
+
 
 const net = require('net');
 const fs = require('fs');
