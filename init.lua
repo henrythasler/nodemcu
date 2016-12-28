@@ -40,8 +40,8 @@ function wifi_monitor(config)
         retry = retry+1
         gpio.write(0,1-gpio.read(0));
         if(retry > 10) then node.restart() end
-        if connected == true then 
-          connected = false 
+        if connected == true then
+          connected = false
           node.restart()
           end
     else
@@ -65,7 +65,7 @@ function wifi_monitor(config)
           end
         )
 
-        for _, item in ipairs(runnables) do
+        for _, item in ipairs(cfg.runnables.active) do
           if pcall(run_lc, item) then
             print("starting "..item)
           else
@@ -93,15 +93,17 @@ if run_lc(cfg_file) == false then
   cfg.wifi.pwd="00000000"
   cfg.wifi.save=true
   cfg.hostname = "node01"
+  cfg.runnables = {}
+  cfg.runnables.sources = {}
 end
 
-sources = {"flashdaemon", "temperature"}
-runnables = {}
-for _, item in ipairs(sources) do
+cfg.runnables.active = {}
+
+for _, item in ipairs(cfg.runnables.sources) do
   print("preparing "..item)
   local status, error = pcall(compile_lua, item)
   if status == true then
-    table.insert(runnables, item)
+    table.insert(cfg.runnables.active, item)
   else
     print('Error compiling '..item..": "..error)
   end
@@ -114,8 +116,6 @@ wifi.sta.sethostname( cfg.hostname )
 wifi.setmode( wifi.STATION )
 wifi.sta.config( cfg.wifi )
 wifi.sta.connect()
-
-httpserver = nil
 
 sensordata = {}
 sensordata.outside = {}

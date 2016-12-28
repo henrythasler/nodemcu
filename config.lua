@@ -1,10 +1,12 @@
 cfg={}
 cfg.wifi = {}
-cfg.wifi.ssid = "myap"
+cfg.wifi.ssid = "ap"
 cfg.wifi.pwd = "0000"
 cfg.wifi.save = false
 cfg.hostname = "node01"
+cfg.runnables = {}
+cfg.runnables.sources = {"flashdaemon", "temperature"}
 cfg.mqtt = {}
 cfg.mqtt.broker = {}
-cfg.mqtt.broker.host = "192.168.178.1"
+cfg.mqtt.broker.host = "192.168.178.25"
 cfg.mqtt.broker.port = 1883

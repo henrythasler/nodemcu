@@ -4,23 +4,37 @@ nodemcu flashtool
 Author: Henry Thasler
 */
 
-
 const net = require('net');
 const fs = require('fs');
+const path = require('path');
 
-const luafile = './../sensor/temperature.lua'
-//const luafile = './../flash/flashdaemon.lua'
+var source = null;
+var header = {
+  cmd: 'status',
+  file: null,
+};
 
-console.log('Preparing '+luafile);
+if(process.argv[2].length) {
+  source=process.argv[2]
+}
+else{
+  console.log('file not found: ' + source)
+  return;
+}
 
-fs.readFile(luafile, {encoding: 'utf8'}, (err, data) => {
+console.log('Preparing ' + source);
+
+fs.readFile(source, {encoding: 'utf8'}, (err, data) => {
   if (err) throw err;
   var lines = data.split('\n')
 
-  let chunks = ['NEW\n'];
+  header.cmd='new'
+  header.file=path.basename(source)
+  let chunks = [JSON.stringify(header)+'\n'];
   for(let line of lines) {
     if( (chunks[chunks.length-1].length+line.length)>1400 ) {
-      chunks.push('APP\n'+line+'\n');
+      header.cmd='append'
+      chunks.push(JSON.stringify(header)+'\n'+line+'\n');
     }
     else {
       chunks[chunks.length-1]+=line+'\n';
@@ -28,7 +42,8 @@ fs.readFile(luafile, {encoding: 'utf8'}, (err, data) => {
   }
 
   // reset nodemcu after flash
-  chunks.push('RES');
+  header.cmd='reset'
+  chunks.push(JSON.stringify(header));
 
   console.log('Prepared '+chunks.length+' chunks. Connecting...');
   var client = net.connect({host: "node01", port: 80}, () => {

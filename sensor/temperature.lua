@@ -54,6 +54,8 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
           ringbuffer.data[ringbuffer.pos] = adc.read(0)
           ringbuffer.pos = ringbuffer.pos + 1
           if ringbuffer.pos > ringbuffer.size then ringbuffer.pos = 1 end
+          gpio.write(0,1);
+          tmr.alarm (2, 50, tmr.ALARM_SINGLE, function () gpio.write(0,0) end)
           --raw = adc.readvdd33()
 
           --print(json)
