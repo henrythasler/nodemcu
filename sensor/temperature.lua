@@ -45,7 +45,7 @@ local transmit_interval = 60
 local ringbuffer = {pos=1, size=120, data={}}
 
 -- for TLS: m:connect("192.168.11.118", secure-port, 1)
-m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0,
+m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0, 1,
       function(client)
         print("MQTT - connected to ".. cfg.mqtt.broker.host..":"..cfg.mqtt.broker.port)
         --m:subscribe("flash",0, function(conn) print("subscribe success") end)

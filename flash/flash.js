@@ -8,6 +8,12 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
+
+const cfg = {
+  host: "node01",
+  port: 80
+};
+
 var source = null;
 var header = {
   cmd: 'status',
@@ -46,7 +52,7 @@ fs.readFile(source, {encoding: 'utf8'}, (err, data) => {
   chunks.push(JSON.stringify(header));
 
   console.log('Prepared '+chunks.length+' chunks. Connecting...');
-  var client = net.connect({host: "node01", port: 80}, () => {
+  var client = net.connect(cfg, () => {
       // 'connect' listener
       console.log('Connected to nodemcu');
       let chunk = chunks.shift()
