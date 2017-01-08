@@ -54,17 +54,6 @@ function wifi_monitor(config)
         print( "Channel: " .. wifi.getchannel() )
         print( "Signal Strength: " .. wifi.sta.getrssi())
 
-        sntp.sync('192.168.178.1',
-          function(sec,usec,server)
-            tm = rtctime.epoch2cal(rtctime.get())
-            date =string.format("%04d-%02d-%02d %02d:%02d:%02d", tm["year"], tm["mon"], tm["day"], tm["hour"], tm["min"], tm["sec"])
-            print(string.format("ntp sync with %s ok: %s UTC/GMT", server, date))
-          end,
-          function(err)
-            print('failed! '..err)
-          end
-        )
-
         for _, item in ipairs(cfg.runnables.active) do
           if pcall(run_lc, item) then
             print("starting "..item)
@@ -72,6 +61,20 @@ function wifi_monitor(config)
             print('Error running '..item)
           end
         end
+      end
+      if cfg.ntp.server and cfg.ntp.synced == false then
+        sntp.sync(cfg.ntp.server,
+          function(sec,usec,server)
+            tm = rtctime.epoch2cal(rtctime.get())
+            date =string.format("%04d-%02d-%02d %02d:%02d:%02d", tm["year"], tm["mon"], tm["day"], tm["hour"], tm["min"], tm["sec"])
+            print(string.format("ntp sync with %s ok: %s UTC/GMT", server, date))
+            cfg.ntp.synced = true
+          end,
+          function(err)
+            print('failed! '..err)
+            cfg.ntp.synced = false
+          end
+        )
       end
     end
   end)
@@ -95,9 +98,12 @@ if run_lc(cfg_file) == false then
   cfg.hostname = "node01"
   cfg.runnables = {}
   cfg.runnables.sources = {}
+  cfg.ntp = {}
+  cfg.ntp.server = false
 end
 
 cfg.runnables.active = {}
+cfg.ntp.synced = false
 
 for _, item in ipairs(cfg.runnables.sources) do
   print("preparing "..item)
