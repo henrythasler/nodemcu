@@ -2,6 +2,7 @@
 /*
 nodemcu flashtool
 Author: Henry Thasler
+Example: nodejs flash.js ./../config.lua 
 */
 
 const net = require('net');

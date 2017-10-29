@@ -28,6 +28,20 @@ sudo apt install nodejs
  * `flash.js` - nodejs-script to upload files to nodemcu
  * `status.lua` - generate status.html on nodemcu.
 
+ #### Usage
+ ```
+ $ nodejs flash.js ./../config.lua
+     Preparing ./../config.lua
+     Prepared 2 chunks. Connecting...
+     Connected to nodemcu
+     sending chunk with 634 Bytes...
+     ok
+     sending chunk with 35 Bytes...
+     ok
+     Finished upload
+     Disconnected from nodemcu
+ ```
+
 ### `/sensor`
  * `temperature.lua` - convert reading from ADC0 to temperature value and send result to MQTT broker.
 
