@@ -19,7 +19,7 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 ## Install ESP-firmware
 
 1. go to [nodemcu-build.com](https://nodemcu-build.com/) 
-2. and create an image with the following modules: `adc bit crypto dht encoder enduser_setup file gpio http mqtt net node perf pwm sjson sntp spi sqlite3 struct tmr uart websocket wifi` 
+2. and create an image with the following modules: `adc, bit, crypto, dht, encoder, enduser_setup, file, gpio, http, mqtt, net, node, perf, pwm, rtctime, sjson, sntp, spi, sqlite3, struct, tmr, uart, websocket, wifi` 
 3. Download the image (float-version)
 4. Flash image: 
 ```
@@ -45,7 +45,7 @@ $ sudo ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-m
     Leaving...
     Hard resetting via RTS pin...
 ```
-5. Check with: `sudo ./uploader/nodemcu-uploader.py terminal` (press reset-button to reconnect)
+5. Check with: `sudo ./uploader/nodemcu-uploader.py terminal` (press reset-button to reboot nodemcu)
 
 ```
 --- Miniterm on /dev/ttyUSB0  115200,8,N,1 ---
