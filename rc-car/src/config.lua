@@ -2,8 +2,13 @@ cfg={}
 
 -- WIFI
 cfg.wifi = {}
+cfg.wifi.mode = wifi.SOFTAP -- or wifi.STATION
 cfg.wifi.ssid = "CDC"
-cfg.wifi.pwd = nil
+cfg.wifi.pwd = "00000000"
+cfg.wifi.auth = wifi.OPEN 
+cfg.wifi.channel = 6
+cfg.wifi.hidden = false
+cfg.wifi.max = 4
 cfg.wifi.save = false
 
 -- nodemcu
@@ -12,7 +17,7 @@ cfg.hostname = "node02"
 
 -- Runnables
 cfg.runnables = {}
-cfg.runnables.sources = {"httpserver"}
+cfg.runnables.sources = {"httpserver", "sensor"}
 
 -- MQTT
 -- host: host name or ip of the broker

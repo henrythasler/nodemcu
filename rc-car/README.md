@@ -10,13 +10,15 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 - write sensor data to SQLite-DB (in-memory)
 - Provide webinterface with sensor information
 
-## Prerequisites
+## Software
+
+### Prerequisites
 
 1. clone this repo
 2. git submodule update --init --recursive
 3. Install python-dependency for esptool: `apt-get install python-serial`
 
-## Install ESP-firmware
+### Install ESP-firmware
 
 1. go to [nodemcu-build.com](https://nodemcu-build.com/) 
 2. and create an image with the following modules: `adc, bit, crypto, dht, encoder, enduser_setup, file, gpio, http, mqtt, net, node, perf, pwm, rtctime, sjson, sntp, spi, sqlite3, struct, tmr, uart, websocket, wifi` 
@@ -64,21 +66,54 @@ lua: cannot open init.lua
 
 ```
 
-## Download files
+### Download files
 
 Go to folder: `cd rc-car`
 
-### ESPlorer GUI
+#### ESPlorer GUI
 
 `sudo java -jar ../ESPlorer/ESPlorer.jar`
 
-### Command line
+#### Command line
 
 Modify deploy.sh as you see fit then run `./deploy.sh`
 
 - Remove files: `sudo ../uploader/nodemcu-uploader.py file remove init.lua config.lua flashdaemon.lua`
 - Terminal: `sudo ../uploader/nodemcu-uploader.py terminal`
 
+## Hardware
+
+![pinning](doc/schematic.png)
+![pinning](doc/breadboard.png)
+
+### Pinning WEMOS D1 Mini
+
+Pin	| Function	| ESP-8266 Pin
+--|--|--
+TX|	TXD|	TXD
+RX|	RXD|	RXD
+A0|	Analog input, max 3.3V input	|A0
+D0|	IO|	GPIO16
+D1|	IO, SCL	|GPIO5
+D2|	IO, SDA	|GPIO4
+D3|	IO, 10k Pull-up	|GPIO0
+D4|	IO, 10k Pull-up, BUILTIN_LED	|GPIO2
+D5|	IO, SCK	|GPIO14
+D6|	IO, MISO	|GPIO12
+D7|	IO, MOSI	|GPIO13
+D8|	IO, 10k Pull-down, SS	|GPIO15
+G	|Ground|	GND
+5V|	5V|	-
+3V3|	3.3V|	3.3V
+RST|	Reset|	RST
+
+## Pinning GY-521 MCU-6050
+
+![pinning](doc/MPU6050-V1-SCH.jpg)
+
+
 ## References
 
 - https://nodemcu-build.com/
+- https://playground.arduino.cc/Main/MPU-6050
+- https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
