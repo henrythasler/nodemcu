@@ -1,14 +1,31 @@
-function connect (conn, data)
-   local query_data
+function connect(conn, data)
+  local header
 
-   conn:on ("receive",
-      function (conn, req_data)
-         query_data = get_http_req (req_data)
-         print (query_data["METHOD"] .. " " .. " " .. (query_data["REQUEST"] and query_data["REQUEST"] or ""))
-         conn:send('HTTP/1.1 200 OK\n\n'..'<!DOCTYPE HTML>\n<html>\n<head><meta  content="text/html; charset=utf-8">\n'..'<title>ESP8266 Blinker Thing</title></head>\n<body><h1>ESP8266 Blinker Thing!</h1>\n</body></html>\n')
-         -- Close the connection for the request
-         conn:on("sent", function(conn) conn:close() end)
-      end)
+  local function onReceive(conn, payload)
+    header = get_http_req(payload)
+    print (header["METHOD"] .. " " .. " " .. (header["REQUEST"] and header["REQUEST"] or ""))
+
+    local content = {}
+    content[#content+1] = 'HTTP/1.1 200 OK\n\n'
+    content[#content+1] = '<!DOCTYPE HTML>\n<html>\n<head><meta  content="text/html; charset=utf-8">\n'
+    content[#content+1] = '<title>CDC Rocks!</title></head>\n'
+    content[#content+1] = '<body>'
+    content[#content+1] = '<h1>CDC Rocks!</h1>\n'
+    content[#content+1] = '<h2>Memory in use: '..collectgarbage("count")..'KB</h2>\n'
+    content[#content+1] = '</body></html>\n'
+--      local content = "HTTP/1.1 200 OK\n\n'..'<!DOCTYPE HTML>\n<html>\n<head><meta  content="text/html; charset=utf-8">\n'..'<title>CDC Rocks!</title></head>\n<body><h1>CDC Rocks!</h1>\n</body></html>\n"
+
+    conn:send(table.concat(content))
+  end
+
+  local function onSent(conn)
+    conn:close()
+  end
+
+  conn:on("receive", onReceive)
+  conn:on("sent", onSent)
+  conn:on("disconnection", onDisconnect)
+
 end
 
 -- String trim left and right
@@ -44,11 +61,6 @@ function get_http_req (instr)
    return t
 end
 
--- close existing server, if exists
-if httpserver ~= nil then
-  httpserver:close()
-  httpserver = nil
-end
 
 -- Create the http server
 httpserver = net.createServer (net.TCP, 10)

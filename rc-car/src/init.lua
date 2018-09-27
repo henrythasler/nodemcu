@@ -1,8 +1,8 @@
 function compile_lua(filename)
-  if file.open(filename .. ".lua") then
-    file.close()
+  if file.exists(filename .. ".lua") then
     node.compile(filename .. ".lua")
     file.remove(filename .. ".lua")
+    collectgarbage()
     return true
   else
     return false
@@ -10,8 +10,7 @@ function compile_lua(filename)
 end
 
 function run_lc(filename)
-  if file.open( filename .. ".lc" ) then
-    file.close()
+  if file.exists(filename .. ".lc") then
     dofile( filename .. ".lc" )
     return true
   else
@@ -21,8 +20,7 @@ function run_lc(filename)
 end
 
 function run_lua(filename)
-  if file.open( filename .. ".lua" ) then
-    file.close()
+  if file.exists(filename .. ".lua") then
     dofile( filename .. ".lua" )
     return true
   else
@@ -33,11 +31,13 @@ end
 
 function start_runnables()
   for _, item in ipairs(cfg.runnables.active) do
-    if pcall(run_lc, item) then
-      print("starting "..item)
-    else
-      print('Error running '..item)
-    end
+    print("starting "..item)
+    dofile(item .. ".lc")
+--    if pcall(run_lc, item) then
+--      print("starting "..item)
+--    else
+--      print('Error running '..item)
+--    end
   end
 end
 
@@ -63,6 +63,8 @@ function wifi_monitor(config)
         print( "Hostname: " .. wifi.sta.gethostname() )
         print( "Channel: " .. wifi.getchannel() )
         print( "Signal Strength: " .. wifi.sta.getrssi())
+        mdns.register(cfg.hostname, { description="CDC rocks", service="http", port=80, location="Earth" })
+        print( "mDNS: "..cfg.hostname..".local")
         start_runnables()
       end
       if cfg.ntp.server and cfg.ntp.synced == false then
@@ -146,7 +148,9 @@ wifi.setmode( cfg.wifi.mode )
 
 if cfg.wifi.mode == wifi.SOFTAP then 
   print("[init-lua] - setting up SoftAP...")
-  wifi.ap.config( cfg.wifi ) 
+  wifi.ap.config(cfg.wifi)
+  wifi.ap.setip(cfg.net)
+  mdns.register(cfg.hostname, { description="CDC rocks", service="http", port=80, location="Earth" })
   start_runnables()
 
 elseif cfg.wifi.mode == wifi.STATION then 
