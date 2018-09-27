@@ -21,8 +21,8 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 ### Install ESP-firmware
 
 1. go to [nodemcu-build.com](https://nodemcu-build.com/) 
-2. and create an image with the following modules: `adc, bit, crypto, dht, encoder, enduser_setup, file, gpio, http, mqtt, net, node, perf, pwm, rtctime, sjson, sntp, spi, sqlite3, struct, tmr, uart, websocket, wifi` 
-3. Download the image (float-version)
+2. and create an image with the following modules: `adc bit crypto encoder file gpio http i2c mdns mqtt net node perf pwm rtctime sjson sntp spi sqlite3 struct tmr uart websocket wifi`
+3. Wait for notification e-mail and download the images with the links provided. 
 4. Flash image: 
 ```
 $ sudo ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-modules-2018-09-23-09-01-43-float.bin 
@@ -52,8 +52,6 @@ $ sudo ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-m
 ```
 --- Miniterm on /dev/ttyUSB0  115200,8,N,1 ---
 --- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
-sl␀l��|␀�l�|␃␌␌␌�␌l�␄b|��␃�␒�s�c�␄c��gg�l'n���␄c␜x��l{drlp�o�␐␃␌␌�␌d␄␄␄␌␌␌c␌g�|␃�␄$�␌�c��nn�␀d��l`␂�␓␓nn␄$`␃␇␂gs���n␄␄{�`␂x�'�␐␃␄␄{�����␌␄␄␄c␌o�|␂␌�s���c��og�␀␌␌d`␃�␛␛ool�l`␃␎␃o{���g␌␌�dd`␃`�o␌␌␌��#�nd�␌��gg�␀␄�␇lp�o�␘␂␌␌s�����l�r�c␌'�|␃d䌇c��gn�␀d�␌l`␂�␓␓'nd�$`␃␇␂gs���n␄␄��␏d␇s��n␄␄��␏d��␃�␓�o�{��g|�␌d␄ddd`␃␜c�␒␂␌�|␂s�␃d�o�␌�g�␀␌l ␃��{�$�l␓�␌␌␌d`␃��{�l�l␓�␌␌␄d`␃��{�l␌��␀�␌␄dd`␃sl��rd���c␄��c␜|l␌c��␄␓���dc��o�␒gg�␘␃␄␃�l�|␃␌쇌␌l␌␄d�d�|�l␌�␏d�␃n�␀���c␌ll쌎␛␄b␄␃␃���b␌l␌�b␜rls
-
 
 NodeMCU custom build by frightanic.com
 	branch: master
@@ -84,6 +82,7 @@ Modify deploy.sh as you see fit then run `./deploy.sh`
 ## Hardware
 
 ![pinning](doc/schematic.png)
+
 ![pinning](doc/breadboard.png)
 
 ### Pinning WEMOS D1 Mini
