@@ -1,15 +1,18 @@
 pl = nil;
 sv=net.createServer(net.TCP, 10)
-sv:listen(80,function(conn)
+sv:listen(81,function(conn)
 	conn:on("receive", function(conn, pl)
 --		local _, count = pl:gsub('\n', '\n')
 --		print('received', count, 'lines')
   local header = {}
 	local x = 0
+	if (sjson == nil) then
+		sjson = cjson
+	 end
 	for line in string.gmatch(pl, '[^\n]+') do
 		if x == 0 then
 			print('Command: '..line)
-			header = cjson.decode(line)
+			header = sjson.decode(line)
 			if header.cmd == 'new' then
 				file.open(header.file, "w+")
 			elseif header.cmd == 'append' then --append
