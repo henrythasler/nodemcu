@@ -31,13 +31,13 @@ end
 
 function start_runnables()
   for _, item in ipairs(cfg.runnables.active) do
-    print("starting "..item)
-    dofile(item .. ".lc")
---    if pcall(run_lc, item) then
---      print("starting "..item)
---    else
---      print('Error running '..item)
---    end
+--    print("starting "..item)
+--    dofile(item .. ".lc")
+    if pcall(run_lc, item) then
+      print("started "..item)
+    else
+      print('Error running '..item)
+    end
   end
 end
 
@@ -145,6 +145,7 @@ wifi.sta.sethostname( cfg.hostname )
 
 -- Set-up Wifi AP
 wifi.setmode( cfg.wifi.mode )
+
 
 if cfg.wifi.mode == wifi.SOFTAP then 
   print("[init-lua] - setting up SoftAP...")
