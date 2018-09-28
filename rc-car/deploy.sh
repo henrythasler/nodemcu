@@ -5,4 +5,5 @@ sudo ./../uploader/nodemcu-uploader.py \
         src/init.lua:init.lua \
         src/status.lua:status.lua \
         src/webserver.lua:webserver.lua \
+        src/MPU6050.lua:MPU6050.lua \
     --verify=sha1
