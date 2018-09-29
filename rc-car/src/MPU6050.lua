@@ -46,12 +46,13 @@ end
 
 -- ATTENTION: The device will come up in sleep mode upon power-up and needs to be woken up before use.
 if read_reg(MPU6050_ADDR, 0x75) == MPU6050_ADDR then
-    print(string.format("found MPU6050 at address 0x%X", MPU6050_ADDR))
+    print(string.format("[MPU6050] - found MPU6050 at address 0x%X", MPU6050_ADDR))
     write_reg(MPU6050_ADDR, PWR_MGMT_1, 0x01)  -- disable SLEEP and set CLKSEL to use PLL (x-Axis Gyro)
 
-    tmr.alarm (0, 5000, tmr.ALARM_AUTO, function ()
+    tmr.alarm (1, 5000, tmr.ALARM_AUTO, function ()
         local ACLNX_m_s2 = toNumber(read_reg(MPU6050_ADDR, ACCEL_XOUT_H), read_reg(MPU6050_ADDR, ACCEL_XOUT_L)) / ACCEL_FS_2G * g_earth
         local TEMP_OUT_degC = toNumber(read_reg(MPU6050_ADDR, TEMP_OUT_H), read_reg(MPU6050_ADDR, TEMP_OUT_L)) / 340 + 36.53
-        print(string.format("MPU6050 - ACLNX=%.2f m/s^2  TEMP=%i", ACLNX_m_s2, TEMP_OUT_degC))
+        print(string.format("[MPU6050] - MPU6050 - ACLNX=%.2f m/s^2  TEMP=%i", ACLNX_m_s2, TEMP_OUT_degC))
+        print(string.format("[MPU6050] - %u Bytes free", node.heap()))
     end)
 end

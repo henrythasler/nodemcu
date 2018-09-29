@@ -14,29 +14,17 @@ function run_lc(filename)
     dofile( filename .. ".lc" )
     return true
   else
-    print("[init-lua] - " .. filename .. ".lc not found." )
-    return false
-  end
-end
-
-function run_lua(filename)
-  if file.exists(filename .. ".lua") then
-    dofile( filename .. ".lua" )
-    return true
-  else
-    print("[init-lua] - " .. filename .. ".lua not found." )
+    print("[init] - " .. filename .. ".lc not found." )
     return false
   end
 end
 
 function start_runnables()
   for _, item in ipairs(cfg.runnables.active) do
---    print("starting "..item)
---    dofile(item .. ".lc")
     if pcall(run_lc, item) then
-      print("started "..item)
+      print("[init] - started "..item)
     else
-      print('Error running '..item)
+      print("[init] - Error running "..item)
     end
   end
 end
@@ -46,9 +34,9 @@ function wifi_monitor(config)
   local retry = 0
   tmr.alarm (0, 1000, tmr.ALARM_AUTO, function ()
     if wifi.sta.getip ( ) == nil then
-        print ("Waiting for WLAN connection to '" ..cfg.wifi.ssid.."'")
+        print ("[init] - Waiting for WiFi connection to '" ..cfg.wifi.ssid.."'")
         retry = retry+1
-        gpio.write(0,1-gpio.read(0));
+        gpio.write(4,1-gpio.read(4));
         if(retry > 10) then node.restart() end
         if connected == true then
           connected = false
@@ -57,14 +45,14 @@ function wifi_monitor(config)
     else
       if connected ~= true then
         connected = true
-        gpio.write( 0,0 )
-        print( "WLAN - connected" )
-        print( "IP: " .. wifi.sta.getip() )
-        print( "Hostname: " .. wifi.sta.gethostname() )
-        print( "Channel: " .. wifi.getchannel() )
-        print( "Signal Strength: " .. wifi.sta.getrssi())
+        gpio.write(4, 0)
+        print("[init] - \tWiFi - connected" )
+        print("[init] - \tIP: " .. wifi.sta.getip() )
+        print("[init] - \tHostname: " .. wifi.sta.gethostname() )
+        print("[init] - \tChannel: " .. wifi.getchannel() )
+        print("[init] - \tSignal Strength: " .. wifi.sta.getrssi())
         mdns.register(cfg.hostname, { description="CDC rocks", service="http", port=80, location="Earth" })
-        print( "mDNS: "..cfg.hostname..".local")
+        print( "[init] - \tmDNS: "..cfg.hostname..".local")
         start_runnables()
       end
       if cfg.ntp.server and cfg.ntp.synced == false then
@@ -72,7 +60,7 @@ function wifi_monitor(config)
           function(sec,usec,server)
             tm = rtctime.epoch2cal(rtctime.get())
             date =string.format("%04d-%02d-%02d %02d:%02d:%02d", tm["year"], tm["mon"], tm["day"], tm["hour"], tm["min"], tm["sec"])
-            print(string.format("ntp sync with %s ok: %s UTC/GMT", server, date))
+            print(string.format("[init] - ntp sync with %s ok: %s UTC/GMT", server, date))
             cfg.ntp.synced = true
           end,
           function(err)
@@ -85,17 +73,6 @@ function wifi_monitor(config)
   end)
 end
 
-function ap_monitor()
-  -- register some debug callbacks
-  wifi.eventmon.register(wifi.eventmon.AP_STACONNECTED, function(T)
-    print("[SOFTAP] - client connected ("..T.MAC..")")
-  end)
-
-  wifi.eventmon.register(wifi.eventmon.AP_STADISCONNECTED, function(T)
-    print("[SOFTAP] - disconnected ("..T.MAC..")")
-  end)
-
-end
 
 -- ### main part
 local cfg_file = "config"
@@ -105,9 +82,10 @@ compile_lua(cfg_file)
 
 -- load config from file
 if run_lc(cfg_file) == false then
-  print("[init-lua] - Config file not found. Using default values." )
+  print("[init] - Config file not found. Using default values." )
   cfg={}
   cfg.wifi = {}
+  cfg.wifi.mode = wifi.SOFTAP 
   cfg.wifi.ssid = "CDC"
   cfg.wifi.pwd = ""
   cfg.wifi.auth = wifi.OPEN
@@ -116,7 +94,7 @@ if run_lc(cfg_file) == false then
   cfg.wifi.max = 4
   cfg.wifi.save = false
 
-  cfg.hostname = "node02"
+  cfg.hostname = "car"
 
   cfg.runnables = {}
   cfg.runnables.sources = {}
@@ -128,17 +106,18 @@ end
 cfg.runnables.active = {}
 cfg.ntp.synced = false
 
-
 -- build runnables
 for _, item in ipairs(cfg.runnables.sources) do
-  print("preparing "..item)
+  print("[init] - preparing "..item)
   local status, error = pcall(compile_lua, item)
   if status == true then
     table.insert(cfg.runnables.active, item)
   else
-    print('Error compiling '..item..": "..error)
+    print("[init] - Error compiling "..item..": "..error)
   end
 end
+
+print(string.format("[init] - %u Bytes free", node.heap()))
 
 -- setup general configuration
 wifi.sta.sethostname( cfg.hostname )
@@ -148,15 +127,24 @@ wifi.setmode( cfg.wifi.mode )
 
 
 if cfg.wifi.mode == wifi.SOFTAP then 
-  print("[init-lua] - setting up SoftAP...")
+  print("[init] - setting up SoftAP...")
   wifi.ap.config(cfg.wifi)
   wifi.ap.setip(cfg.net)
   mdns.register(cfg.hostname, { description="CDC rocks", service="http", port=80, location="Earth" })
+
+  wifi.eventmon.register(wifi.eventmon.AP_STACONNECTED, function(T)
+    print("[init] - client connected ("..T.MAC..")")
+  end)
+
+  wifi.eventmon.register(wifi.eventmon.AP_STADISCONNECTED, function(T)
+    print("[init] - disconnected ("..T.MAC..")")
+  end)
+
   start_runnables()
 
 elseif cfg.wifi.mode == wifi.STATION then 
-  print("[STATION] - Connecting to AP...")
-  wifi.sta.config( cfg.wifi )
+  print("[init] - Connecting to AP...")
+  wifi.sta.config(cfg.wifi)
   wifi.sta.connect()
   wifi_monitor()
 end

@@ -5,15 +5,16 @@ function connect(conn, data)
     header = get_http_req(payload)
     print (header["METHOD"] .. " " .. " " .. (header["REQUEST"] and header["REQUEST"] or ""))
 
-    local content = {}
-    content[#content+1] = 'HTTP/1.1 200 OK\n\n'
-    content[#content+1] = '<!DOCTYPE HTML>\n<html>\n<head><meta  content="text/html; charset=utf-8">\n'
-    content[#content+1] = '<title>CDC Rocks!</title></head>\n'
-    content[#content+1] = '<body>'
-    content[#content+1] = '<h1>CDC Rocks!</h1>\n'
-    content[#content+1] = '<h2>Memory in use: '..collectgarbage("count")..'KB</h2>\n'
-    content[#content+1] = '</body></html>\n'
-    conn:send(table.concat(content))
+    local c = {}
+    c[#c+1] = 'HTTP/1.1 200 OK\n\n'
+    c[#c+1] = '<!DOCTYPE HTML>\n<html>\n<head>\n'
+    c[#c+1] = '<meta charset="UTF-8">\n'
+    c[#c+1] = '<title>CDC Rocks!</title></head>\n'
+    c[#c+1] = '<body>\n'
+    c[#c+1] = '<h1>CDC Rocks!</h1>\n'
+    c[#c+1] = '<h2>Memory in use: '..collectgarbage("count")..'KB</h2>\n'
+    c[#c+1] = '</body></html>\n'
+    conn:send(table.concat(c))
   end
 
   local function onSent(conn)
@@ -65,4 +66,4 @@ httpserver = net.createServer (net.TCP, 10)
 
 -- Server listening on port 80, call connect function if a request is received
 httpserver:listen (80, connect)
-print( "http server waiting for connections" )
+print("[http] - waiting for connections")
