@@ -1,0 +1,37 @@
+
+$header_height: 35px;
+$padding_lr: 15px;
+$padding_body_top: 10px;
+$margin: 5px;
+.header {
+    width: calc(100% - 2* #{$padding_lr} - 2* #{$margin});
+    height: calc(#{$header_height} - 2* #{$margin});
+    background: rgb(49, 94, 192);
+    color: white;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 16px;
+    padding-top: 10px;
+    margin: $margin;
+}
+.body{
+    padding-top: $padding_body_top;
+    width: calc(100% - 2* #{$padding_lr} - 2* #{$margin});
+    height: calc(100% - #{$header_height} - #{$padding_body_top} - 3* #{$margin});
+    margin: $margin;
+    background: white;
+}
+.paddings{
+    padding-left: $padding_lr;
+    padding-right: $padding_lr;
+}
+$data_height: 200px;
+.data{
+    width: 100%;
+    height: $data_height;
+}
+.text_box {
+    width: 100%;
+    height: calc(100% - #{$data_height} - 150px);
+    width: calc(100% -  6px);
+}
