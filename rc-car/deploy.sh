@@ -6,4 +6,4 @@ sudo ./../uploader/nodemcu-uploader.py \
         src/status.lua:status.lua \
         src/webserver.lua:webserver.lua \
         src/MPU6050.lua:MPU6050.lua \
-    --verify=sha1
+#    --verify=sha1

@@ -20,7 +20,7 @@ sv:listen(81,function(conn)
 			elseif header.cmd == 'reset' then --restart
 				conn:send("ok")
 				conn:close()
-		tmr.alarm (0, 500, tmr.ALARM_AUTO, function () node.restart() end)
+				tmr.alarm (0, 500, tmr.ALARM_AUTO, function () node.restart() end)
 			end
 		else
 			file.writeline(line)

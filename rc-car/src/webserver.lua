@@ -13,8 +13,6 @@ function connect(conn, data)
     content[#content+1] = '<h1>CDC Rocks!</h1>\n'
     content[#content+1] = '<h2>Memory in use: '..collectgarbage("count")..'KB</h2>\n'
     content[#content+1] = '</body></html>\n'
---      local content = "HTTP/1.1 200 OK\n\n'..'<!DOCTYPE HTML>\n<html>\n<head><meta  content="text/html; charset=utf-8">\n'..'<title>CDC Rocks!</title></head>\n<body><h1>CDC Rocks!</h1>\n</body></html>\n"
-
     conn:send(table.concat(content))
   end
 
