@@ -21,7 +21,8 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 ### Install ESP-firmware
 
 1. go to [nodemcu-build.com](https://nodemcu-build.com/) 
-2. and create an image with the following modules: `adc bit crypto encoder file gpio http i2c mdns mqtt net node perf pwm rtctime sjson sntp spi sqlite3 struct tmr uart websocket wifi`
+2. and create an image with the following modules: 
+`bit crypto encoder file gpio i2c mdns net node rtctime sjson sntp struct tmr uart websocket wifi`
 3. Wait for notification e-mail and download the images with the links provided. 
 4. Flash image: 
 ```

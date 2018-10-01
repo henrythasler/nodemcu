@@ -6,4 +6,5 @@ sudo ./../uploader/nodemcu-uploader.py \
         src/status.lua:status.lua \
         src/webserver.lua:webserver.lua \
         src/MPU6050.lua:MPU6050.lua \
+        ../flash/flashdaemon.lua:flashdaemon.lua \
 #    --verify=sha1

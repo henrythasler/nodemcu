@@ -1,69 +1,134 @@
-function connect(conn, data)
-  local header
-
-  local function onReceive(conn, payload)
-    header = get_http_req(payload)
-    print (header["METHOD"] .. " " .. " " .. (header["REQUEST"] and header["REQUEST"] or ""))
-
-    local c = {}
-    c[#c+1] = 'HTTP/1.1 200 OK\n\n'
-    c[#c+1] = '<!DOCTYPE HTML>\n<html>\n<head>\n'
-    c[#c+1] = '<meta charset="UTF-8">\n'
-    c[#c+1] = '<title>CDC Rocks!</title></head>\n'
-    c[#c+1] = '<body>\n'
-    c[#c+1] = '<h1>CDC Rocks!</h1>\n'
-    c[#c+1] = '<h2>Memory in use: '..collectgarbage("count")..'KB</h2>\n'
-    c[#c+1] = '</body></html>\n'
-    conn:send(table.concat(c))
-  end
-
-  local function onSent(conn)
-    conn:close()
-  end
-
-  conn:on("receive", onReceive)
-  conn:on("sent", onSent)
-  conn:on("disconnection", onDisconnect)
-
+-- Compile additional files
+local files = {
+    "webserver-request.lua"
+}
+for i, f in ipairs(files) do
+    if file.exists(f) then
+        print("Compiling:", f)
+        node.compile(f)
+        file.remove(f)
+        collectgarbage()
+    end
 end
 
--- String trim left and right
-function trim (s)
-  return (s:gsub ("^%s*(.-)%s*$", "%1"))
+files = nil
+collectgarbage()
+
+local function sendHeader(conn, code, fileExt, isGzipped, extraHeaders)
+    local codes = {[200] = " OK", [400] = " Bad Request", [404] = " Not Found", [500] = " Internal Server Error"}
+    local mime = {
+        css = "text/css\r\n",
+        gif = "image/gif\r\n",
+        html = "text/html\r\n",
+        ico = "image/x-icon\r\n",
+        jpeg = "image/jpeg\r\n",
+        jpg = "image/jpeg\r\n",
+        js = "application/javascript\r\n",
+        json = "application/json\r\n",
+        png = "image/png\r\n",
+        xml = "text/xml\r\n"
+    }
+    local hdr = {}
+    hdr[#hdr + 1] = "HTTP/1.0 "
+    hdr[#hdr + 1] = tostring(code)
+    hdr[#hdr + 1] = codes[code] and codes[code] or " Internal Server Error"
+    hdr[#hdr + 1] = "\r\nServer: CDC-Backend\r\nContent-Type: "
+    hdr[#hdr + 1] = mime[fileExt] and mime[fileExt] or "text/css\r\n"
+    if isGzipped then
+        hdr[#hdr + 1] = "Content-Encoding: gzip\r\n"
+    end
+
+    if (extraHeaders) then
+        for i, extraHeader in ipairs(extraHeaders) do
+            connection:send(extraHeader .. "\r\n")
+        end
+    end
+
+    hdr[#hdr + 1] = "Connection: close\r\n\r\n"
+    conn:send(table.concat(hdr))
 end
 
--- Build and return a table of the http request data
-function get_http_req (instr)
-   local t = {}
-   local first = nil
-   local key, v, strt_ndx, end_ndx
+local function on_receive(sck, data)
+    local done = false
+    local filesize = nil
+    local bytesRemaining = nil
 
-   for str in string.gmatch (instr, "([^\n]+)") do
-      -- First line in the method and path
-      if (first == nil) then
-         first = 1
-         strt_ndx, end_ndx = string.find (str, "([^ ]+)")
-         v = trim (string.sub (str, end_ndx + 2))
-         key = trim (string.sub (str, strt_ndx, end_ndx))
-         t["METHOD"] = key
-         t["REQUEST"] = v
-      else -- Process and reamaining ":" fields
-         strt_ndx, end_ndx = string.find (str, "([^:]+)")
-         if (end_ndx ~= nil) then
-            v = trim (string.sub (str, end_ndx + 2))
-            key = trim (string.sub (str, strt_ndx, end_ndx))
-            t[key] = v
-         end
-      end
-   end
+    -- buffer configuration
+    -- better set to the recommended chunk size for file.read() of 1024 bytes. Increase for better transmission rates but more memory usage
+    local chunkSize = 1400
 
-   return t
+    local request = dofile("webserver-request.lc")(data)
+    print(request.method, request.resource, request.uri.file)
+
+    local function on_sent(local_conn)
+        if bytesRemaining > 0 then
+            local fileHandle = file.open(request.uri.file)
+            if fileHandle then
+                fileHandle:seek("set", filesize - bytesRemaining)
+                local bytesToRead = 0
+                if bytesRemaining > chunkSize then
+                    bytesToRead = chunkSize
+                else
+                    bytesToRead = bytesRemaining
+                end
+                local chunk = fileHandle:read(bytesToRead)
+                local_conn:send(chunk)
+                bytesRemaining = bytesRemaining - #chunk
+                --print(request.uri.file .. ": Sent "..#chunk.. " bytes, " .. bytesRemaining .. " to go.")
+                fileHandle:close()
+            else
+                print("[http] - File I/O error")
+                done = true
+            end
+        else
+            done = true
+        end
+
+        -- close connection when done
+        if done then
+            local_conn:close()
+        end
+    end
+
+    sck:on("sent", on_sent)
+
+    local fileExists = false
+
+    if not file.exists(request.uri.file) then
+        if file.exists(request.uri.file .. ".gz") then
+            print("gzip variant exists, serving that one")
+            request.uri.file = request.uri.file .. ".gz"
+            request.uri.isGzipped = true
+            fileExists = true
+        end
+    else
+        fileExists = true
+    end
+
+    if fileExists then
+        print(request.uri.file .. " found")
+        sendHeader(sck, 200, request.uri.ext, request.uri.isGzipped)
+        filesize = file.list()[request.uri.file]
+        bytesRemaining = filesize
+        on_sent(sck)
+    else
+        print(request.uri.file .. " not found")
+        done = true
+        conn:send(
+            "HTTP/1.0 404 Not Found\r\n\r\n<html><head><title>404 - Not Found</title></head><body><h1>404 - Not Found: " ..
+                request.uri.file .. "</h1></body></html>\r\n"
+        )
+    end
 end
 
+function on_connect(conn)
+    conn:on("receive", on_receive)
+end
 
--- Create the http server
-httpserver = net.createServer (net.TCP, 10)
-
--- Server listening on port 80, call connect function if a request is received
-httpserver:listen (80, connect)
-print("[http] - waiting for connections")
+local httpserver = net.createServer(net.TCP, 30)
+if httpserver then
+    httpserver:listen(80, on_connect)
+    print("[http] - waiting for connections")
+else
+    print("[http] - can't open socket")
+end
