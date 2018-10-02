@@ -15,7 +15,14 @@ files = nil
 collectgarbage()
 
 local function sendHeader(conn, code, fileExt, isGzipped, extraHeaders)
-    local codes = {[200] = " OK", [400] = " Bad Request", [404] = " Not Found", [500] = " Internal Server Error"}
+    local codes = {
+        [200] = " OK",
+        [301] = " Moved Permanently",
+        [400] = " Bad Request",
+        [404] = " Not Found",
+        [429] = " Too Many Requests",
+        [500] = " Internal Server Error"
+    }
     local mime = {
         css = "text/css\r\n",
         gif = "image/gif\r\n",
@@ -33,32 +40,32 @@ local function sendHeader(conn, code, fileExt, isGzipped, extraHeaders)
     hdr[#hdr + 1] = tostring(code)
     hdr[#hdr + 1] = codes[code] and codes[code] or " Internal Server Error"
     hdr[#hdr + 1] = "\r\nServer: CDC-Backend\r\nContent-Type: "
-    hdr[#hdr + 1] = mime[fileExt] and mime[fileExt] or "text/css\r\n"
+    hdr[#hdr + 1] = mime[fileExt] and mime[fileExt] or "text/plain\r\n"
     if isGzipped then
         hdr[#hdr + 1] = "Content-Encoding: gzip\r\n"
     end
 
     if (extraHeaders) then
         for i, extraHeader in ipairs(extraHeaders) do
-            connection:send(extraHeader .. "\r\n")
+            hdr[#hdr + 1] = extraHeader .. "\r\n"
         end
     end
-
+   
     hdr[#hdr + 1] = "Connection: close\r\n\r\n"
     conn:send(table.concat(hdr))
 end
 
+serverBusy = false
+
 local function on_receive(sck, data)
     local done = false
     local filesize = nil
-    local bytesRemaining = nil
+    local request = nil
+    local bytesRemaining = 0
 
     -- buffer configuration
     -- better set to the recommended chunk size for file.read() of 1024 bytes. Increase for better transmission rates but more memory usage
     local chunkSize = 1400
-
-    local request = dofile("webserver-request.lc")(data)
-    print(request.method, request.resource, request.uri.file)
 
     local function on_sent(local_conn)
         if bytesRemaining > 0 then
@@ -87,10 +94,24 @@ local function on_receive(sck, data)
         -- close connection when done
         if done then
             local_conn:close()
+            serverBusy = false
         end
     end
-
     sck:on("sent", on_sent)
+
+    if serverBusy then
+        print("[http] - Server busy")
+        sendHeader(sck, 429, nil, false, {"Retry-After: 5"})
+        return
+    end
+    serverBusy = true
+
+    request = dofile("webserver-request.lc")(data)
+    print(request.method, request.resource, request.uri.file)
+
+    for k, v in pairs(request.uri.args) do
+        print(k, v)
+    end
 
     local fileExists = false
 
@@ -106,15 +127,20 @@ local function on_receive(sck, data)
     end
 
     if fileExists then
-        print(request.uri.file .. " found")
-        sendHeader(sck, 200, request.uri.ext, request.uri.isGzipped)
-        filesize = file.list()[request.uri.file]
-        bytesRemaining = filesize
-        on_sent(sck)
+        if request.uri.isScript then
+            print("running", request.uri.file)
+            sendHeader(sck, 200, "json", false)
+            sck:send(string.format('{"Temperature": %i}', sensor:getTemp()))
+        else
+            print(request.uri.file .. " found")
+            filesize = file.list()[request.uri.file]
+            bytesRemaining = filesize
+            sendHeader(sck, 200, request.uri.ext, request.uri.isGzipped)
+            --on_sent(sck)
+        end
     else
         print(request.uri.file .. " not found")
-        done = true
-        conn:send(
+        sck:send(
             "HTTP/1.0 404 Not Found\r\n\r\n<html><head><title>404 - Not Found</title></head><body><h1>404 - Not Found: " ..
                 request.uri.file .. "</h1></body></html>\r\n"
         )

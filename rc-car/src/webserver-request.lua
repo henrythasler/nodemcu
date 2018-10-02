@@ -103,11 +103,11 @@ end
       method (string)   : Request method (e.g. "GET") (https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods)
       resource (string) : 
       uri (table)       :
-          file          :
-          args          : Key-Value pairs of url arguments and other stuff
-          ext           :
-          isGzipped     :
-          isScript      :
+          file          : file to server
+          args          : Key-Value pairs of url arguments
+          ext           : file extension, used to set MIME type
+          isGzipped     : used to set correct response header for gzipped files
+          isScript      : 
       getRequestData    : table with decoded (JSON or FORM) data
 ]]--
 return function (request)

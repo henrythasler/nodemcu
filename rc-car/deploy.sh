@@ -1,5 +1,5 @@
 #! /bin/bash
-sudo ./../uploader/nodemcu-uploader.py \
+./../uploader/nodemcu-uploader.py \
     upload \
         src/config.lua:config.lua \
         src/init.lua:init.lua \

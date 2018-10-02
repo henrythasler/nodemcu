@@ -21,16 +21,16 @@ end
 
 function start_runnables()
     for _, item in ipairs(cfg.runnables.active) do
-        if file.exists(item .. ".lc") then
-            dofile(item .. ".lc")
+        --if file.exists(item .. ".lc") then
+        --    dofile(item .. ".lc")
+        --else
+        --    print("[init] - " .. item .. ".lc not found.")
+        --end
+        if pcall(run_lc, item) then
+            print("[init] - started " .. item)
         else
-            print("[init] - " .. item .. ".lc not found.")
+            print("![init] - Error running " .. item)
         end
-        --    if pcall(run_lc, item) then
-        --      print("[init] - started "..item)
-        --    else
-        --      print("[init] - Error running "..item)
-        --    end
     end
 end
 
