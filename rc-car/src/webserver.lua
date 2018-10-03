@@ -1,6 +1,7 @@
--- Compile additional files
+-- Compile additional modules
 local files = {
-    "webserver-request.lua"
+    "webserver-request.lua",
+    "webserver-header.lua"
 }
 for i, f in ipairs(files) do
     if file.exists(f) then
@@ -14,46 +15,6 @@ end
 files = nil
 collectgarbage()
 
-local function sendHeader(conn, code, fileExt, isGzipped, extraHeaders)
-    local codes = {
-        [200] = " OK",
-        [301] = " Moved Permanently",
-        [400] = " Bad Request",
-        [404] = " Not Found",
-        [429] = " Too Many Requests",
-        [500] = " Internal Server Error"
-    }
-    local mime = {
-        css = "text/css\r\n",
-        gif = "image/gif\r\n",
-        html = "text/html\r\n",
-        ico = "image/x-icon\r\n",
-        jpeg = "image/jpeg\r\n",
-        jpg = "image/jpeg\r\n",
-        js = "application/javascript\r\n",
-        json = "application/json\r\n",
-        png = "image/png\r\n",
-        xml = "text/xml\r\n"
-    }
-    local hdr = {}
-    hdr[#hdr + 1] = "HTTP/1.0 "
-    hdr[#hdr + 1] = tostring(code)
-    hdr[#hdr + 1] = codes[code] and codes[code] or " Internal Server Error"
-    hdr[#hdr + 1] = "\r\nServer: CDC-Backend\r\nContent-Type: "
-    hdr[#hdr + 1] = mime[fileExt] and mime[fileExt] or "text/plain\r\n"
-    if isGzipped then
-        hdr[#hdr + 1] = "Content-Encoding: gzip\r\n"
-    end
-
-    if (extraHeaders) then
-        for i, extraHeader in ipairs(extraHeaders) do
-            hdr[#hdr + 1] = extraHeader .. "\r\n"
-        end
-    end
-   
-    hdr[#hdr + 1] = "Connection: close\r\n\r\n"
-    conn:send(table.concat(hdr))
-end
 
 serverBusy = false
 
@@ -97,11 +58,13 @@ local function on_receive(sck, data)
             serverBusy = false
         end
     end
-    sck:on("sent", on_sent)
+    
 
+    -- allow only one request to be processed
     if serverBusy then
         print("[http] - Server busy")
-        sendHeader(sck, 429, nil, false, {"Retry-After: 5"})
+        sck:on("sent", on_sent)
+        dofile("webserver-header.lc")(sck, 429, nil, false, {"Retry-After: 5"})
         return
     end
     serverBusy = true
@@ -109,15 +72,14 @@ local function on_receive(sck, data)
     request = dofile("webserver-request.lc")(data)
     print(request.method, request.resource, request.uri.file)
 
-    for k, v in pairs(request.uri.args) do
-        print(k, v)
-    end
+    for k, v in pairs(request.uri.args) do print(k, v) end
 
     local fileExists = false
 
+    -- check for gzipped variant
     if not file.exists(request.uri.file) then
         if file.exists(request.uri.file .. ".gz") then
-            print("gzip variant exists, serving that one")
+            --print("gzip variant exists, serving that one")
             request.uri.file = request.uri.file .. ".gz"
             request.uri.isGzipped = true
             fileExists = true
@@ -127,19 +89,22 @@ local function on_receive(sck, data)
     end
 
     if fileExists then
-        if request.uri.isScript then
+        if request.uri.isScript then    -- let script handle the request
             print("running", request.uri.file)
-            sendHeader(sck, 200, "json", false)
-            sck:send(string.format('{"Temperature": %i}', sensor:getTemp()))
-        else
+            dofile(request.uri.file)(sck, request)
+            --sendHeader(sck, 200, "json", false)
+            --sck:send(string.format('{"Temperature": %i}', sensor:getTemp()))
+        else -- regular file serving
             print(request.uri.file .. " found")
             filesize = file.list()[request.uri.file]
             bytesRemaining = filesize
-            sendHeader(sck, 200, request.uri.ext, request.uri.isGzipped)
+            sck:on("sent", on_sent)
+            dofile("webserver-header.lc")(sck, 200, request.uri.ext, request.uri.isGzipped)
             --on_sent(sck)
         end
     else
         print(request.uri.file .. " not found")
+        sck:on("sent", on_sent)
         sck:send(
             "HTTP/1.0 404 Not Found\r\n\r\n<html><head><title>404 - Not Found</title></head><body><h1>404 - Not Found: " ..
                 request.uri.file .. "</h1></body></html>\r\n"

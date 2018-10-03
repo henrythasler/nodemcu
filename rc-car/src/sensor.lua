@@ -1,31 +1,39 @@
---[[
-local db = sqlite3.open("sensors.sqlite")
-if db then
-    print("SQLite version: " .. sqlite3.version())
-    --db:exec("CREATE TABLE test (id INTEGER PRIMARY KEY, time timestamp, ACLNX REAL, ACLNY REAL);")
-    --db:exec("INSERT INTO test VALUES (NULL, '2018-09-24 20:00:00', 0.43, 0.01);")
+return function(sck, request)
 
-    db:exec("CREATE TABLE outside(temp INT, hum INT);")
-    db:exec("INSERT INTO outside(temp, hum) VALUES(1, 2);")
+  local ax, ay, az = sensor:getAcceleration()
+  local gx, gy, gz = sensor:getGyroscope()
+  -- this is the content of our response
+  local data = {
+    timestamp = rtctime.get(),
+    temp = sensor:getTemp(),
+    ax = ax,
+    ay = ay,
+    az = az,
+    gx = gx,
+    gy = gy,
+    gz = gz,
+    avg_heap = stats.heap
+  }
 
+  -- use as stream-json-encoder to chunk large content
+  local encoder = sjson.encoder(data)
 
-    db:close()
-end
-]]--
-
-local db = sqlite3.open("sensors.sqlite")
-sql=[=[
-    CREATE TABLE numbers(num1,num2,str);
-    INSERT INTO numbers VALUES(1,11,"ABC");
-    INSERT INTO numbers VALUES(2,22,"DEF");
-    INSERT INTO numbers VALUES(3,33,"UVW");
-    INSERT INTO numbers VALUES(4,44,"XYZ");
-    SELECT * FROM numbers;
-  ]=]
-  function showrow(udata,cols,values,names)
-    assert(udata=='test_udata')
-    print('exec:')
-    for i=1,cols do print('',names[i],values[i]) end
-    return 0
+  -- callback upon completion of current response
+  local function on_sent(local_conn)
+    local chunk = encoder:read(256) -- send 256-Byte chunks
+    if chunk then
+      -- send chunk to client and wait for next callback
+      local_conn:send(chunk)  
+    else
+      -- all done; close socket and release semaphore when done
+      local_conn:close()
+      serverBusy = false
+    end
   end
-  db:exec(sql,showrow,'test_udata')
+
+  -- register callback
+  sck:on("sent", on_sent)
+
+  -- send http-header ("200 OK") with matching MIME-Type; on_sent is called upon completion
+  dofile("webserver-header.lc")(sck, 200, "json", false)
+end

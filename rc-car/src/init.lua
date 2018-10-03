@@ -54,6 +54,7 @@ function wifi_monitor(config)
                     node.restart()
                 end
             else
+                stats.heap = (stats.heap + node.heap())/2
                 print(string.format("[init] - %u Bytes free", node.heap()))
                 if connected ~= true then
                     connected = true
@@ -143,6 +144,9 @@ for _, item in ipairs(cfg.runnables.sources) do
 end
 
 print(string.format("[init] - %u Bytes free", node.heap()))
+
+stats = {}
+stats.heap = node.heap()    -- history of heap values
 
 -- setup general configuration
 wifi.sta.sethostname(cfg.hostname)
