@@ -1,4 +1,4 @@
-function compile_lua(filename)
+local function compile_lua(filename)
     if file.exists(filename .. ".lua") then
         node.compile(filename .. ".lua")
         file.remove(filename .. ".lua")
@@ -9,7 +9,7 @@ function compile_lua(filename)
     end
 end
 
-function run_lc(filename)
+local function run_lc(filename)
     if file.exists(filename .. ".lc") then
         dofile(filename .. ".lc")
         return true
@@ -19,7 +19,7 @@ function run_lc(filename)
     end
 end
 
-function start_runnables()
+local function start_runnables()
     for _, item in ipairs(cfg.runnables.active) do
         --if file.exists(item .. ".lc") then
         --    dofile(item .. ".lc")
@@ -34,7 +34,7 @@ function start_runnables()
     end
 end
 
-function wifi_monitor(config)
+local function wifi_monitor(config)
     local connected = false
     local retry = 0
     tmr.alarm(
@@ -42,6 +42,8 @@ function wifi_monitor(config)
         2000,
         tmr.ALARM_AUTO,
         function()
+            stats.heap = (stats.heap + node.heap())/2
+
             if wifi.sta.getip() == nil then
                 print("[init] - Waiting for WiFi connection to '" .. cfg.wifi.ssid .. "'")
                 retry = retry + 1
@@ -54,7 +56,6 @@ function wifi_monitor(config)
                     node.restart()
                 end
             else
-                stats.heap = (stats.heap + node.heap())/2
                 print(string.format("[init] - %u Bytes free", node.heap()))
                 if connected ~= true then
                     connected = true
@@ -71,12 +72,13 @@ function wifi_monitor(config)
                     print("[init] - \tmDNS: " .. cfg.hostname .. ".local")
                     start_runnables()
                 end
-                if cfg.ntp.server and cfg.ntp.synced == false then
+                if cfg.ntp.server and (cfg.ntp.synced == false) and not cfg.ntp.inProgress then
+                    cfg.ntp.inProgress = true
                     sntp.sync(
                         cfg.ntp.server,
                         function(sec, usec, server)
-                            tm = rtctime.epoch2cal(rtctime.get())
-                            date =
+                            local tm = rtctime.epoch2cal(rtctime.get())
+                            local date =
                                 string.format(
                                 "%04d-%02d-%02d %02d:%02d:%02d",
                                 tm["year"],
@@ -88,10 +90,12 @@ function wifi_monitor(config)
                             )
                             print(string.format("[init] - ntp sync with %s ok: %s UTC/GMT", server, date))
                             cfg.ntp.synced = true
+                            cfg.ntp.inProgress = false
                         end,
                         function(err)
-                            print("failed! " .. err)
+                            print("[init] - ntp sync failed")
                             cfg.ntp.synced = false
+                            cfg.ntp.inProgress = false
                         end
                     )
                 end
@@ -101,13 +105,22 @@ function wifi_monitor(config)
 end
 
 -- ### main part
-local cfg_file = "config"
-
 -- compile config file
-compile_lua(cfg_file)
+compile_lua("config")
+
+-- compile all user-scripts
+local l = file.list("^usr/.+(%.lua)$")
+for k, v in pairs(l) do
+    if file.exists(k) then
+        print("Compiling:", k)
+        node.compile(k)
+        file.remove(k)
+        collectgarbage()
+    end
+end
 
 -- load config from file
-if run_lc(cfg_file) == false then
+if run_lc("config") == false then
     print("[init] - Config file not found. Using default values.")
     cfg = {}
     cfg.wifi = {}
@@ -142,8 +155,6 @@ for _, item in ipairs(cfg.runnables.sources) do
         print("[init] - Error compiling " .. item .. ": " .. error)
     end
 end
-
-print(string.format("[init] - %u Bytes free", node.heap()))
 
 stats = {}
 stats.heap = node.heap()    -- history of heap values

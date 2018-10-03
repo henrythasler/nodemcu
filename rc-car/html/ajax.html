@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>AJAX Test</title>
+<script language="javascript" type="text/javascript">
+    var output;
+    var xhr;
+
+    function init() {
+        output = document.getElementById("output");
+        setTimeout(getJSON, 1000);
+    }
+
+    function getJSON() {
+		xhr = new XMLHttpRequest();
+		xhr.open("GET", "sensor.lc", true);
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4 && xhr.status == 200) {
+                var sensor = JSON.parse(xhr.responseText);
+                writeToScreen("ax="+sensor.ax.toFixed(2)+"g")
+                setTimeout(getJSON, 500);
+			}
+        }
+        xhr.send()
+    }
+
+    function writeToScreen(message) {
+        output.replaceChild(document.createTextNode(message), output.childNodes[0]);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+
+<h2>AJAX Test</h2>
+
+<div id="output"><p></p></div>

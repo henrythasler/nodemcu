@@ -85,8 +85,6 @@ end
 sensor = MPU6050.new(0x68)
 
 -- initialize sensor with pins 2=D2/GPIO4 as SDA and 1=D1/GPIO5 as SCL
-if sensor:init(2, 1) then 
-    print("[sensor] - found MPU6050")
-else 
+if not sensor:init(2, 1) then 
     print("[sensor] - no sensor found") 
 end

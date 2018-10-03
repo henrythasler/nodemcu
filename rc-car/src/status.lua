@@ -1,28 +1,64 @@
---  this files gets informaton the saves it to a file call info.lua.  info.lua is then read to conn:send
-file.open("status.html","w+")
-w = file.writeline
-w("<html>")
-w("<body bgcolor='#E6E6E6'>")
-w("<h1>System Info </h1>")
-w("<p>IP: ")
-w(wifi.sta.getip())
-w("</p><p>MAC: "..wifi.sta.getmac())
-    majorVer, minorVer, devVer, chipid, flashid, flashsize, flashmode, flashspeed = node.info();
-    w("<BR>NodeMCU: "..majorVer.."."..minorVer.."."..devVer.."<BR>Flashsize: "..flashsize.."<BR>ChipID: "..chipid)
-    w("<BR>FlashID: "..flashid.."<BR>".."Flashmode: "..flashmode.."<BR>Heap: "..node.heap())
-r,u,t=file.fsinfo()
-w("<p>&nbsp;&nbsp;&nbsp;&nbsp;File System <BR><BR>Total Memory : "..t.." <BR>bytes\r\nUsed  : "..u.." <BR>bytes\r\nRemain: "..r.." bytes\r\n")
-r=nil u=nil t=nil
-w("<BR><BR>")
-w("&nbsp;&nbsp;&nbsp;&nbsp;Files in memory<br><BR>")
-w("<table cellpadding ='2'>")
-    l = file.list();
-    for k,v in pairs(l) do
-    w("<tr>")
-       w("<td><B>"..k.."</td><td>"..v.." bytes</td>")
-    w("</tr>")
+return function(sck, request)
+    local majorVer, minorVer, devVer, chipid, flashid, flashsize, flashmode, flashspeed = node.info()
+    local remaining, used, total = file.fsinfo()
+    local _, reset_reason = node.bootreason()
+    local total_allocated, estimated_used = node.egc.meminfo()
+    local addr, netmask, gateway = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getip() or wifi.ap.getip()
+    local data = {
+        timestamp = rtctime.get(),
+        node = {
+            majorVer = majorVer,
+            minorVer = minorVer,
+            devVer = devVer,
+            chipid = chipid,
+            flashid = flashid,
+            flashsize = flashsize,
+            flashmode = flashmode,
+            flashspeed = flashspeed,
+            reset_reason = reset_reason,
+            cpufreq = node.getcpufreq(),
+        },
+        mem = {
+            total_allocated = total_allocated, 
+            estimated_used = estimated_used,
+        },
+        net = {
+            hostname = (cfg.wifi.mode == wifi.STATION) and wifi.sta.gethostname() or wifi.ap.gethostname(),
+            channel = wifi.getchannel(),
+            address = addr,
+            netmask = netmask,
+            gateway = gateway,
+            mac = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getmac() or wifi.ap.getmac(),
+            rssi = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getrssi() or nil,
+            ssid = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getconfig() or wifi.ap.getconfig(),
+        },
+        fs = {
+            remaining = remaining,
+            used = used,
+            total = total,
+        },
+        files = file.list(),
+    }
+
+    -- use as stream-json-encoder to chunk large content
+    local encoder = sjson.encoder(data)
+
+    -- callback upon completion of current response
+    local function on_sent(local_conn)
+        local chunk = encoder:read(256) -- send 256-Byte chunks
+        if chunk then
+            -- send chunk to client and wait for next callback
+            local_conn:send(chunk)
+        else
+            -- all done; close socket and release semaphore when done
+            local_conn:close()
+            maxThreads = maxThreads + 1
+        end
     end
-w("</table>")
-w("<BR><BR>&nbsp;&nbsp;&nbsp;&nbsp;End of info")
-w("</html>")
-file.close()
+
+    -- register callback
+    sck:on("sent", on_sent)
+
+    -- send http-header ("200 OK") with matching MIME-Type; on_sent is called upon completion
+    dofile("webserver-header.lc")(sck, 200, "json", false)
+end

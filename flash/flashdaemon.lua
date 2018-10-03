@@ -1,5 +1,4 @@
-payload = nil;
-sv=net.createServer(net.TCP, 10)
+local sv = net.createServer(net.TCP, 10)
 sv:listen(81, function(conn)
 	conn:on("receive", function(conn, payload)
 --		local _, count = payload:gsub('\n', '\n')

@@ -16,6 +16,7 @@ const cfg = {
 };
 
 var source = null;
+var target = null;
 var header = {
   cmd: 'status',
   file: null,
@@ -29,6 +30,13 @@ else{
   return;
 }
 
+if(process.argv[3]) {
+  target=process.argv[3]
+}
+else{
+  target = path.basename(source)
+}
+
 console.log('Preparing ' + source);
 
 fs.readFile(source, {encoding: 'utf8'}, (err, data) => {
@@ -36,7 +44,7 @@ fs.readFile(source, {encoding: 'utf8'}, (err, data) => {
   var lines = data.split('\n')
 
   header.cmd='new'
-  header.file=path.basename(source)
+  header.file=target
   let chunks = [JSON.stringify(header)+'\n'];
   for(let line of lines) {
     if( (chunks[chunks.length-1].length+line.length)>1400 ) {
