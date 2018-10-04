@@ -37,5 +37,6 @@ return function (conn, code, fileExt, isGzipped, extraHeaders)
     end
    
     hdr[#hdr + 1] = "Connection: close\r\n\r\n"
+
     conn:send(table.concat(hdr))
 end

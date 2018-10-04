@@ -23,7 +23,7 @@ return function(sck, request)
             estimated_used = estimated_used,
         },
         net = {
-            hostname = (cfg.wifi.mode == wifi.STATION) and wifi.sta.gethostname() or wifi.ap.gethostname(),
+            hostname = (cfg.wifi.mode == wifi.STATION) and wifi.sta.gethostname() or nil,
             channel = wifi.getchannel(),
             address = addr,
             netmask = netmask,
@@ -31,6 +31,7 @@ return function(sck, request)
             mac = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getmac() or wifi.ap.getmac(),
             rssi = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getrssi() or nil,
             ssid = (cfg.wifi.mode == wifi.STATION) and wifi.sta.getconfig() or wifi.ap.getconfig(),
+            clients = (cfg.wifi.mode == wifi.SOFTAP) and wifi.ap.getclient() or nil,
         },
         fs = {
             remaining = remaining,

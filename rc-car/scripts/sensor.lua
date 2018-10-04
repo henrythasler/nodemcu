@@ -1,10 +1,12 @@
 return function(sck, request)
-    local ax, ay, az = sensor:getAcceleration()
-    local gx, gy, gz = sensor:getGyroscope()
+    if sensor then
+        local ax, ay, az = sensor:getAcceleration()
+        local gx, gy, gz = sensor:getGyroscope()
+    end
     -- this is the content of our response
     local data = {
         timestamp = rtctime.get(),
-        temp = sensor:getTemp(),
+        temp = sensor and sensor:getTemp() or -40,
         ax = ax,
         ay = ay,
         az = az,

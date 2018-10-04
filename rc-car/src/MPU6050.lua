@@ -4,6 +4,7 @@ MPU6050.__index = MPU6050
 function MPU6050.new(address)
   local self = setmetatable({}, MPU6050)
   self.address = address
+  self.present = false
   return self
 end
 
@@ -12,10 +13,10 @@ function MPU6050.init(self, pinSDA, pinSCL)
     if res == i2c.SLOW then
         if self:read_reg(0x75) == self.address then
             self:write_reg(0x6B, 0x01)  -- PWR_MGMT_1: disable SLEEP and set CLKSEL to use PLL (x-Axis Gyro)
-            return true
+            self.present = true
         end 
     end
-    return false
+    return self.present
 end
 
 function MPU6050.read_reg(self, register)
@@ -86,5 +87,6 @@ sensor = MPU6050.new(0x68)
 
 -- initialize sensor with pins 2=D2/GPIO4 as SDA and 1=D1/GPIO5 as SCL
 if not sensor:init(2, 1) then 
-    print("[sensor] - no sensor found") 
+    print("[sensor] - no sensor found")
+    sensor = nil
 end

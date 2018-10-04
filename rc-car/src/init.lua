@@ -114,7 +114,7 @@ for k, v in pairs(l) do
     if file.exists(k) then
         print("Compiling:", k)
         node.compile(k)
-        file.remove(k)
+        --file.remove(k)    -- do not remove file, might want to download into browser
         collectgarbage()
     end
 end
@@ -126,7 +126,7 @@ if run_lc("config") == false then
     cfg.wifi = {}
     cfg.wifi.mode = wifi.SOFTAP
     cfg.wifi.ssid = "CDC"
-    cfg.wifi.pwd = ""
+    cfg.wifi.pwd = "00000000"
     cfg.wifi.auth = wifi.OPEN
     cfg.wifi.channel = 6
     cfg.wifi.hidden = false
@@ -140,6 +140,11 @@ if run_lc("config") == false then
 
     cfg.ntp = {}
     cfg.ntp.server = false
+
+    cfg.net = {}
+    cfg.net.ip = "192.168.1.1"
+    cfg.net.netmask="255.255.255.0"
+    cfg.net.gateway="192.168.1.1"
 end
 
 cfg.runnables.active = {}
@@ -184,7 +189,6 @@ if cfg.wifi.mode == wifi.SOFTAP then
             print("[init] - disconnected (" .. T.MAC .. ")")
         end
     )
-
     start_runnables()
 elseif cfg.wifi.mode == wifi.STATION then
     print("[init] - Connecting to AP...")
