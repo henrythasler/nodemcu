@@ -65,15 +65,6 @@ if httpserver then
                 end
             end
 
-            if isWebsocket then
-                
-                temp = {}
-                for i = 1, #data do
-                    temp[#temp+1] = string.format("%X ", string.byte(data, i))
-                end
-                print("[ws] - received: " .. table.concat(temp))
-                return
-            end
             -- limit concurrent connections to prevent RAM panic situations; reject client if currently busy
             if maxThreads <= 0 then
                 print("[http] - Server busy")

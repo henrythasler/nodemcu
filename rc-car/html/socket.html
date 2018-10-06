@@ -33,12 +33,11 @@
     }
 
     function onMessage(evt) {
-        console.log("MESSAGE: " + evt.data);
         writeToScreen(evt.data);
         curTimestamp = performance.now();
-        avgFramerate = curTimestamp-lastTimestamp
-        console.log(avgFramerate)
-        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate*1000), document.getElementById("framerate").childNodes[0]);
+        console.log(curTimestamp-lastTimestamp)
+        avgFramerate = (avgFramerate + (curTimestamp-lastTimestamp))/2
+        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate), document.getElementById("framerate").childNodes[0]);
         lastTimestamp = curTimestamp
         //websocket.close();
     }
