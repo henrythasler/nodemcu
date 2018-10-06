@@ -75,7 +75,6 @@ if httpserver then
                 return
             end
             -- limit concurrent connections to prevent RAM panic situations; reject client if currently busy
-            print(data)
             if maxThreads <= 0 then
                 print("[http] - Server busy")
                 sck:on("sent", on_sent)

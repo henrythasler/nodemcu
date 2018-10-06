@@ -3,9 +3,12 @@
 <title>WebSocket Test</title>
 <script language="javascript" type="text/javascript">
 
-    var wsUri = "ws://car.local"; 
-    wsUri = "ws://echo.websocket.org/";
+    var wsUri = "ws://car.local"; //  wsUri = "ws://echo.websocket.org/";
     var output;
+    var websocket;
+    var avgFramerate=0;
+    var lastTimestamp=performance.now();
+    var curTimestamp = 0
 
     function init() {
         output = document.getElementById("output");
@@ -21,33 +24,36 @@
     }
 
     function onOpen(evt) {
-        writeToScreen("CONNECTED");
-        doSend("WebSocket rocks");
+        console.log("CONNECTED");
+        //doSend("WebSocket rocks");
     }
 
     function onClose(evt) {
-        writeToScreen("DISCONNECTED");
+        console.log("DISCONNECTED");
     }
 
     function onMessage(evt) {
-        writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
-        websocket.close();
+        console.log("MESSAGE: " + evt.data);
+        writeToScreen(evt.data);
+        curTimestamp = performance.now();
+        avgFramerate = curTimestamp-lastTimestamp
+        console.log(avgFramerate)
+        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate*1000), document.getElementById("framerate").childNodes[0]);
+        lastTimestamp = curTimestamp
+        //websocket.close();
     }
 
     function onError(evt) {
-        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+        console.log("ERROR: " + evt.data);
     }
 
     function doSend(message) {
-        writeToScreen("SENT: " + message);
+        console.log("SENT: " + message);
         websocket.send(message);
     }
 
     function writeToScreen(message) {
-        var pre = document.createElement("p");
-        pre.style.wordWrap = "break-word";
-        pre.innerHTML = message;
-        output.appendChild(pre);
+        output.replaceChild(document.createTextNode(message), output.childNodes[0]);
     }
 
     window.addEventListener("load", init, false);
@@ -56,4 +62,5 @@
 
 <h2>WebSocket Test</h2>
 
-<div id="output"></div>
+<div id="output"><p></p></div>
+Update Rate: <div id="framerate"><p></p>ms</div>
