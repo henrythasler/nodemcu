@@ -19,6 +19,10 @@ function MPU6050.init(self, pinSDA, pinSCL)
     return self.present
 end
 
+function MPU6050.isPresent(self)
+    return self.present
+end
+
 function MPU6050.read_reg(self, register)
     i2c.start(0)
     i2c.address(0, self.address, i2c.TRANSMITTER)
@@ -88,5 +92,4 @@ sensor = MPU6050.new(0x68)
 -- initialize sensor with pins 2=D2/GPIO4 as SDA and 1=D1/GPIO5 as SCL
 if not sensor:init(2, 1) then 
     print("[sensor] - no sensor found")
-    sensor = nil
 end

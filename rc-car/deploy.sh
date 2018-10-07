@@ -6,9 +6,13 @@
         src/webserver.lua:webserver.lua \
         src/webserver-header.lua:webserver-header.lua \
         src/webserver-request.lua:webserver-request.lua \
+        src/webserver-websocket.lua:webserver-websocket.lua \
         src/MPU6050.lua:MPU6050.lua \
         scripts/status.lua:usr/status.lua \
         scripts/sensor.lua:usr/sensor.lua \
         scripts/htmlstatus.lua:usr/htmlstatus.lua \
+        html/ajax.html:ajax.html \
+        html/socket.html:socket.html \
+        html/index.html.gz:index.html.gz \
         ../flash/flashdaemon.lua:flashdaemon.lua \
 #    --verify=sha1

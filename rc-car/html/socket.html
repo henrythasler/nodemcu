@@ -3,20 +3,39 @@
 <title>WebSocket Test</title>
 <script language="javascript" type="text/javascript">
 
-    var wsUri = "ws://car.local"; //  wsUri = "ws://echo.websocket.org/";
+    var wsUri = "ws://car.local";
     var output;
     var websocket;
-    var avgFramerate=0;
-    var lastTimestamp=performance.now();
+    var avgFramerate = 0;
+    var lastTimestamp = performance.now();
     var curTimestamp = 0
 
     function init() {
+        document.getElementById('ot_open_btn').onclick = ot_open;
+        document.getElementById('ot_close_btn').onclick = ot_close;
+
         output = document.getElementById("output");
-        testWebSocket();
+        //testWebSocket();
+    }
+
+    function ot_open() {
+        websocket = new WebSocket(wsUri);
+        try {
+            websocket.onopen = function (evt) { onOpen(evt) };
+            websocket.onclose = function (evt) { onClose(evt) };
+            websocket.onmessage = function (evt) { onMessage(evt) };
+            websocket.onerror = function (evt) { onError(evt) };
+        } catch (exception) {
+            console.log('ERROR - ' + exception);
+        }
+
+    }
+
+    function ot_close() {
+        websocket.close()
     }
 
     function testWebSocket() {
-        websocket = new WebSocket(wsUri);
         websocket.onopen = function (evt) { onOpen(evt) };
         websocket.onclose = function (evt) { onClose(evt) };
         websocket.onmessage = function (evt) { onMessage(evt) };
@@ -25,19 +44,23 @@
 
     function onOpen(evt) {
         console.log("CONNECTED");
+        document.getElementById("ot_open_btn").disabled = true;
+        document.getElementById("ot_close_btn").disabled = false;
         //doSend("WebSocket rocks");
     }
 
     function onClose(evt) {
         console.log("DISCONNECTED");
+        document.getElementById("ot_open_btn").disabled = false;
+        document.getElementById("ot_close_btn").disabled = true;
     }
 
     function onMessage(evt) {
         writeToScreen(evt.data);
         curTimestamp = performance.now();
-        console.log(curTimestamp-lastTimestamp)
-        avgFramerate = (avgFramerate + (curTimestamp-lastTimestamp))/2
-        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate), document.getElementById("framerate").childNodes[0]);
+        console.log(curTimestamp - lastTimestamp)
+        avgFramerate = (avgFramerate + (curTimestamp - lastTimestamp)) / 2
+        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate + "ms"), document.getElementById("framerate").childNodes[0]);
         lastTimestamp = curTimestamp
         //websocket.close();
     }
@@ -61,5 +84,20 @@
 
 <h2>WebSocket Test</h2>
 
-<div id="output"><p></p></div>
-Update Rate: <div id="framerate"><p></p>ms</div>
+<tr>
+    <td align=center>
+        <div id="output">
+        </div>
+    </td>
+    <td align=center>
+        <div>Update Rate:</div>
+        <div id="framerate">
+        </div>
+    </td>
+</tr>
+<tr>
+    <td align=center>
+        <input type="button" id="ot_open_btn" value="Open"></td>
+    <td align=center>
+        <input type="button" id="ot_close_btn" disabled value="Close"></td>
+</tr>

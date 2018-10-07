@@ -1,4 +1,4 @@
-local function encode(payload, opcode)
+local function encode(opcode, payload)
     local len = #payload
     local frame = {}
     frame[#frame + 1] =
@@ -23,16 +23,25 @@ local function encode(payload, opcode)
 end
 
 local function decode(payload, mask)
-
 end
 
 return function(sck, request)
-    local opcodes = {[0]="Continuation", [1]="Text", [2]="binary", [8]="Close", [9]="Ping", [10]="Pong"}
+    local opcodes = {[0] = "Continuation", [1] = "Text", [2] = "binary", [8] = "Close", [9] = "Ping", [10] = "Pong"}
+    local closingHandshake = false
+    local statusCode = nil
+    local txBufferContent = 0 -- keep track of transmit buffer content so we close the connection only AFTER everything was sent.
 
     -- callback upon completion of current response
     local function ws_sent(local_conn)
-       -- print("[ws] - sent")
-        --local_conn:close()
+        txBufferContent = (txBufferContent > 0) and (txBufferContent - 1) or 0
+        if closingHandshake then
+            if txBufferContent == 0 then
+                print("[ws] - closing")
+                local_conn:close()
+                maxThreads = maxThreads + 1
+                gpio.write(0, 0)    -- turn LED on
+            end
+        end
     end
 
     local function ws_receive(local_conn, data)
@@ -41,15 +50,43 @@ return function(sck, request)
             temp[#temp + 1] = string.format("%X ", string.byte(data, i))
         end
         print("[ws] - received: " .. table.concat(temp))
-        print("Opcode: ".. opcodes[bit.band(string.byte(data, 1), 0x0f)])
-        --local_conn:close()
+        local opcode = bit.band(string.byte(data, 1), 0x0f)
+        print("[ws] - Opcode: " .. opcodes[opcode])
+
+        local payloadLen = bit.band(string.byte(data, 2), 0x0f)
+        if payloadLen == 126 then
+            payloadLen = string.byte(data, 3) * 256 + string.byte(data, 4)
+        elseif payloadLen == 127 then
+            payloadLen = 0x10000 -- FIXME: needs implementation
+        end
+
+        print("[ws] - payloadLen=", payloadLen)
+
+        -- connection is about to be closed (either client or server initiated)
+        if opcode == 0x08 then
+            tmr.unregister(2)
+            if closingHandshake then
+                print("[ws] - closingHandshake done - close")
+                local_conn:close()
+            else
+                closingHandshake = true
+                print("[ws] - closingHandshake return")
+                --statusCode = 1001
+                local_conn:send(
+                    encode(0x08, "")
+                    --string.char(bit.band(bit.rshift(statusCode, 8), 0xff), bit.band(statusCode, 0xff)))
+                )
+                txBufferContent = txBufferContent + 1
+            end
+        end
     end
 
+    -- client closed the connection
     local function ws_disconnect(local_conn)
-        print("[ws] - close")
+        print("[ws] - closed")
         tmr.unregister(2)
         maxThreads = maxThreads + 1
-        --local_conn:close()
+        gpio.write(0, 0)    -- turn LED on
     end
 
     -- 250ms seems to be the minimal sending interval of the TCP module. Calling this timer more often results in burst transmission.
@@ -59,21 +96,27 @@ return function(sck, request)
         250,
         tmr.ALARM_AUTO,
         function()
-            local ax, ay, az = sensor:getAcceleration()
-            local data = '{"ax":' .. ax .. ',"ay":' .. ay .. ',"az":' .. az .. "}"
-            sck:send(encode(data, 0x01))
+            if not closingHandshake then
+                if sensor:isPresent() then
+                    gpio.write(0, 1 - gpio.read(4))
+                    local ax, ay, az = sensor:getAcceleration()
+                    local data = '{"ax":' .. ax .. ',"ay":' .. ay .. ',"az":' .. az .. "}"
+                    sck:send(encode(0x01, data))
+                    txBufferContent = txBufferContent + 1
+                end
+            end
         end
     )
 
     -- (un)register websocket callbacks
-    sck:on("sent", nil)
+    sck:on("sent", ws_sent)
     sck:on("disconnection", ws_disconnect)
     sck:on("receive", ws_receive)
 
     local key = request:match("Sec%-WebSocket%-Key: ([A-Za-z0-9+/=]+)")
     local accept = crypto.toBase64(crypto.hash("sha1", key .. "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))
 
-    -- delete unused callback function 
+    -- delete unused callback function
     on_sent = nil
     on_receive = nil
 
@@ -84,5 +127,6 @@ return function(sck, request)
         false,
         {"Sec-WebSocket-Accept: " .. accept, "Upgrade: websocket", "Connection: Upgrade"}
     )
+    txBufferContent = txBufferContent + 1
     return true
 end

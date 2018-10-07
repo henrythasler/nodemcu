@@ -47,7 +47,7 @@ local function wifi_monitor(config)
             if wifi.sta.getip() == nil then
                 print("[init] - Waiting for WiFi connection to '" .. cfg.wifi.ssid .. "'")
                 retry = retry + 1
-                gpio.write(4, 1 - gpio.read(4))
+                gpio.write(0, 1 - gpio.read(4))
                 if (retry > 10) then
                     node.restart()
                 end
@@ -57,9 +57,12 @@ local function wifi_monitor(config)
                 end
             else
                 print(string.format("[init] - %u Bytes free", node.heap()))
+                gpio.write(0,1);
+                tmr.alarm (3, 50, tmr.ALARM_SINGLE, function () gpio.write(0,0) end)
+      
                 if connected ~= true then
                     connected = true
-                    gpio.write(4, 0)
+                    gpio.write(0, 0)
                     print("[init] - \tWiFi - connected")
                     print("[init] - \tIP: " .. wifi.sta.getip())
                     print("[init] - \tHostname: " .. wifi.sta.gethostname())
@@ -166,6 +169,9 @@ stats.heap = node.heap()    -- history of heap values
 
 -- setup general configuration
 wifi.sta.sethostname(cfg.hostname)
+
+-- setup GPIO
+gpio.mode(0, gpio.OUTPUT)   -- LED, if mounted
 
 -- Set-up Wifi AP
 wifi.setmode(cfg.wifi.mode)

@@ -114,6 +114,7 @@ RST|	Reset|	RST
 
 ## References
 
+- https://frightanic.com/iot/comparison-of-esp8266-nodemcu-development-boards/
 - https://nodemcu-build.com/
 - https://playground.arduino.cc/Main/MPU-6050
 - https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
