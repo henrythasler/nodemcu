@@ -13,6 +13,7 @@ function MPU6050.init(self, pinSDA, pinSCL)
     if res == i2c.SLOW then
         if self:read_reg(0x75) == self.address then
             self:write_reg(0x6B, 0x01)  -- PWR_MGMT_1: disable SLEEP and set CLKSEL to use PLL (x-Axis Gyro)
+            self:write_reg(0x1C, 0x10)  -- ACCEL_CONFIG: AFS_SEL=2 (8g)
             self.present = true
         end 
     end
@@ -68,11 +69,11 @@ end
 -- return the acceleration in units of 1g
 function MPU6050.getAcceleration(self)
     -- register: ACCEL_XOUT_H=0x3B
-    -- scaling: ACCEL_FS_2G=16384;
+    -- scaling: 2g = 16384 LSB/g; 4g = 8192 LSB/g; 8g = 4096 LSB/g;
     local data = self:read_burst(0x3B, 6)   -- read 6 consecutive bytes from sensor chip
-    return self:toNumber(string.byte(data, 1), string.byte(data, 2)) / 16384,
-        self:toNumber(string.byte(data, 3), string.byte(data, 4)) / 16384,
-        self:toNumber(string.byte(data, 5), string.byte(data, 6)) / 16384
+    return self:toNumber(string.byte(data, 1), string.byte(data, 2)) / 4096,
+        self:toNumber(string.byte(data, 3), string.byte(data, 4)) / 4096,
+        self:toNumber(string.byte(data, 5), string.byte(data, 6)) / 4096
 end
 
 

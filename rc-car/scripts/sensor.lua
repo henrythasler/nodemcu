@@ -10,8 +10,7 @@ return function(sck, request)
         az = az,
         gx = gx,
         gy = gy,
-        gz = gz,
-        avg_heap = stats.heap
+        gz = gz
     }
 
     -- use as stream-json-encoder to chunk large content

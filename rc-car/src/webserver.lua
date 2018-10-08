@@ -21,66 +21,67 @@ maxThreads = 1
 local httpserver = net.createServer(net.TCP, 30)
 if httpserver then
     httpserver:listen(80, function(conn)
-
         local isWebsocket = false
+        local done = false
+        local filesize = nil
+        local request = nil
+        local bytesRemaining = 0
+    
+        -- buffer configuration
+        -- better set to the recommended chunk size for file.read() of 1024 bytes. Increase for better transmission rates but more memory usage
+        local chunkSize = 1400
 
-        local function on_receive(sck, data)
-            local done = false
-            local filesize = nil
-            local request = nil
-            local bytesRemaining = 0
-        
-            -- buffer configuration
-            -- better set to the recommended chunk size for file.read() of 1024 bytes. Increase for better transmission rates but more memory usage
-            local chunkSize = 1400
-        
-            local function on_sent(local_conn)
-                if bytesRemaining > 0 then
-                    local fileHandle = file.open(request.uri.file)
-                    if fileHandle then
-                        fileHandle:seek("set", filesize - bytesRemaining)
-                        local bytesToRead = 0
-                        if bytesRemaining > chunkSize then
-                            bytesToRead = chunkSize
-                        else
-                            bytesToRead = bytesRemaining
-                        end
-                        local chunk = fileHandle:read(bytesToRead)
-                        local_conn:send(chunk)
-                        bytesRemaining = bytesRemaining - #chunk
-                        --print(request.uri.file .. ": Sent "..#chunk.. " bytes, " .. bytesRemaining .. " to go.")
-                        fileHandle:close()
+        local function on_sent(local_conn)
+            if bytesRemaining > 0 then
+                local fileHandle = file.open(request.uri.file)
+                if fileHandle then
+                    fileHandle:seek("set", filesize - bytesRemaining)
+                    local bytesToRead = 0
+                    if bytesRemaining > chunkSize then
+                        bytesToRead = chunkSize
                     else
-                        print("[http] - File error")
-                        done = true
+                        bytesToRead = bytesRemaining
                     end
+                    local chunk = fileHandle:read(bytesToRead)
+                    local_conn:send(chunk)
+                    bytesRemaining = bytesRemaining - #chunk
+                    --print(request.uri.file .. ": Sent "..#chunk.. " bytes, " .. bytesRemaining .. " to go.")
+                    fileHandle:close()
                 else
+                    print("[http] - File error")
                     done = true
                 end
-        
-                -- close connection when done
-                if done then
-                    local_conn:close()
-                    maxThreads = maxThreads + 1
-                end
+            else
+                done = true
             end
+    
+            -- close connection when done
+            if done then
+                local_conn:close()
+                maxThreads = maxThreads + 1
+            end
+        end
 
+        local function on_receive(sck, data)
             -- limit concurrent connections to prevent RAM panic situations; reject client if currently busy
             if maxThreads <= 0 then
                 print("[http] - Server busy")
                 sck:on("sent", on_sent)
-                dofile("webserver-header.lc")(sck, 429, nil, false, {"Retry-After: 5"})
+                dofile("webserver-header.lc")(sck, 503, nil, false, {"Retry-After: 5"})
+                maxThreads = maxThreads - 1
                 return
             end
             maxThreads = maxThreads - 1
         
             -- look for websocket connection upgrade
             if string.match(data, "Upgrade: ([%w/-]+)") == "websocket" then
-                print("[http] - websocket")
+                --print("[http] - websocket")
+                -- hand over to websocket-module
                 isWebsocket = dofile("webserver-websocket.lc")(sck, data)
                 return
             end
         
+            -- decode request data (e.g. url-encoded parameters)
             request = dofile("webserver-request.lc")(data)
             print(request.method, request.resource, request.uri.file)
         

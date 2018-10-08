@@ -3,12 +3,25 @@
 <title>WebSocket Test</title>
 <script language="javascript" type="text/javascript">
 
-    var wsUri = "ws://car.local";
+    var wsUri = "/";
     var output;
     var websocket;
     var avgFramerate = 0;
     var lastTimestamp = performance.now();
     var curTimestamp = 0
+
+
+    function get_appropriate_ws_url() {
+        var pcol;
+        var u = document.URL;
+
+            pcol = "ws://";
+            if (u.substring(0, 4) == "http")
+                u = u.substr(7);
+
+        u = u.split('/');
+        return pcol + u[0];
+    }
 
     function init() {
         document.getElementById('ot_open_btn').onclick = ot_open;
@@ -19,7 +32,9 @@
     }
 
     function ot_open() {
-        websocket = new WebSocket(wsUri);
+        url = get_appropriate_ws_url()
+        console.log('CONNECT - ' + url)
+        websocket = new WebSocket( url );
         try {
             websocket.onopen = function (evt) { onOpen(evt) };
             websocket.onclose = function (evt) { onClose(evt) };
@@ -56,11 +71,12 @@
     }
 
     function onMessage(evt) {
-        writeToScreen(evt.data);
+        data = JSON.parse(evt.data);
+        writeToScreen("timestamp=" + data.timestamp.toFixed(0) + "µs   ax=" + data.ax.toFixed(2) + "g ay=" + data.ay.toFixed(2) + "g az=" + data.az.toFixed(2) + "g" + "  gx=" + data.gx.toFixed(2) + "°/s gy=" + data.ay.toFixed(2) + "°/s gz=" + data.az.toFixed(2) + "°/s    " + data.temp.toFixed(1) + "°C");
         curTimestamp = performance.now();
         console.log(curTimestamp - lastTimestamp)
         avgFramerate = (avgFramerate + (curTimestamp - lastTimestamp)) / 2
-        document.getElementById("framerate").replaceChild(document.createTextNode(avgFramerate + "ms"), document.getElementById("framerate").childNodes[0]);
+        document.getElementById("framerate").replaceChild(document.createTextNode("Update Rate: " + avgFramerate.toFixed(0) + "ms"), document.getElementById("framerate").childNodes[0]);
         lastTimestamp = curTimestamp
         //websocket.close();
     }
@@ -78,19 +94,24 @@
         output.replaceChild(document.createTextNode(message), output.childNodes[0]);
     }
 
+    function writeToScreen2(message) {
+        output.replaceChild(document.createTextNode(message), output.childNodes[1]);
+    }
+
     window.addEventListener("load", init, false);
 
 </script>
 
 <h2>WebSocket Test</h2>
 
+<PRE>
 <tr>
     <td align=center>
         <div id="output">
+            <p></p>
         </div>
     </td>
     <td align=center>
-        <div>Update Rate:</div>
         <div id="framerate">
         </div>
     </td>
@@ -101,3 +122,4 @@
     <td align=center>
         <input type="button" id="ot_close_btn" disabled value="Close"></td>
 </tr>
+</PRE>

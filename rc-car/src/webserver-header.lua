@@ -6,7 +6,8 @@ return function (conn, code, fileExt, isGzipped, extraHeaders)
         [400] = " Bad Request",
         [404] = " Not Found",
         [429] = " Too Many Requests",
-        [500] = " Internal Server Error"
+        [500] = " Internal Server Error",
+        [503] = " Service Unavailable"
     }
     local mime = {
         css = "text/css\r\n",

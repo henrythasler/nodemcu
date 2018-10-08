@@ -22,14 +22,32 @@ local function encode(opcode, payload)
     return table.concat(frame)
 end
 
-local function decode(payload, mask)
-end
-
 return function(sck, request)
     local opcodes = {[0] = "Continuation", [1] = "Text", [2] = "binary", [8] = "Close", [9] = "Ping", [10] = "Pong"}
     local closingHandshake = false
     local statusCode = nil
     local txBufferContent = 0 -- keep track of transmit buffer content so we close the connection only AFTER everything was sent.
+
+    local function sendSensorData(local_conn)
+        if sensor:isPresent() then
+            gpio.write(0, 1 - gpio.read(0)) -- toggle LED to indicate websocket-traffic
+            local ax, ay, az = sensor:getAcceleration()
+            local gx, gy, gz = sensor:getGyroscope()
+            local data = {
+                utc = rtctime.get(),
+                timestamp = tmr.now(),
+                temp = sensor:getTemp(),
+                ax = ax,
+                ay = ay,
+                az = az,
+                gx = gx,
+                gy = gy,
+                gz = gz
+            }
+            local_conn:send(encode(0x01, sjson.encode(data))) -- send as "Text" (0x01)
+            txBufferContent = txBufferContent + 1
+        end
+    end
 
     -- callback upon completion of current response
     local function ws_sent(local_conn)
@@ -39,13 +57,17 @@ return function(sck, request)
                 print("[ws] - closing")
                 local_conn:close()
                 maxThreads = maxThreads + 1
-                gpio.write(0, 0)    -- turn LED on
+                gpio.write(0, 0) -- turn LED on
             end
+        elseif txBufferContent == 0 then
+            sendSensorData(local_conn)
         end
     end
 
     local function ws_receive(local_conn, data)
         local temp = {}
+        local payload = nil
+
         for i = 1, #data do
             temp[#temp + 1] = string.format("%X ", string.byte(data, i))
         end
@@ -64,7 +86,6 @@ return function(sck, request)
 
         -- connection is about to be closed (either client or server initiated)
         if opcode == 0x08 then
-            tmr.unregister(2)
             if closingHandshake then
                 print("[ws] - closingHandshake done - close")
                 local_conn:close()
@@ -84,39 +105,20 @@ return function(sck, request)
     -- client closed the connection
     local function ws_disconnect(local_conn)
         print("[ws] - closed")
-        tmr.unregister(2)
         maxThreads = maxThreads + 1
-        gpio.write(0, 0)    -- turn LED on
+        gpio.write(0, 0) -- turn LED on
     end
-
-    -- 250ms seems to be the minimal sending interval of the TCP module. Calling this timer more often results in burst transmission.
-    -- Based on measurements. Couldn't find any hard evidence...
-    tmr.alarm(
-        2,
-        250,
-        tmr.ALARM_AUTO,
-        function()
-            if not closingHandshake then
-                if sensor:isPresent() then
-                    gpio.write(0, 1 - gpio.read(4))
-                    local ax, ay, az = sensor:getAcceleration()
-                    local data = '{"ax":' .. ax .. ',"ay":' .. ay .. ',"az":' .. az .. "}"
-                    sck:send(encode(0x01, data))
-                    txBufferContent = txBufferContent + 1
-                end
-            end
-        end
-    )
 
     -- (un)register websocket callbacks
     sck:on("sent", ws_sent)
     sck:on("disconnection", ws_disconnect)
     sck:on("receive", ws_receive)
 
+    -- compute response challenge as per rfc6455#section-1.3
     local key = request:match("Sec%-WebSocket%-Key: ([A-Za-z0-9+/=]+)")
     local accept = crypto.toBase64(crypto.hash("sha1", key .. "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))
 
-    -- delete unused callback function
+    -- delete unused webserver callback functions
     on_sent = nil
     on_receive = nil
 
@@ -127,6 +129,7 @@ return function(sck, request)
         false,
         {"Sec-WebSocket-Accept: " .. accept, "Upgrade: websocket", "Connection: Upgrade"}
     )
+    print("[ws] - open")
     txBufferContent = txBufferContent + 1
     return true
 end

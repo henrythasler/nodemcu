@@ -21,11 +21,6 @@ end
 
 local function start_runnables()
     for _, item in ipairs(cfg.runnables.active) do
-        --if file.exists(item .. ".lc") then
-        --    dofile(item .. ".lc")
-        --else
-        --    print("[init] - " .. item .. ".lc not found.")
-        --end
         if pcall(run_lc, item) then
             print("[init] - started " .. item)
         else
@@ -42,12 +37,10 @@ local function wifi_monitor(config)
         2000,
         tmr.ALARM_AUTO,
         function()
-            stats.heap = (stats.heap + node.heap())/2
-
             if wifi.sta.getip() == nil then
                 print("[init] - Waiting for WiFi connection to '" .. cfg.wifi.ssid .. "'")
                 retry = retry + 1
-                gpio.write(0, 1 - gpio.read(4))
+                gpio.write(0, 1 - gpio.read(0))
                 if (retry > 10) then
                     node.restart()
                 end
@@ -163,9 +156,6 @@ for _, item in ipairs(cfg.runnables.sources) do
         print("[init] - Error compiling " .. item .. ": " .. error)
     end
 end
-
-stats = {}
-stats.heap = node.heap()    -- history of heap values
 
 -- setup general configuration
 wifi.sta.sethostname(cfg.hostname)
