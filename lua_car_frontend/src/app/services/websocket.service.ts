@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as socket from 'websocket';
 import { Subject } from 'rxjs/internal/Subject';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +14,9 @@ export class WebsocketService {
   public subject_data = new Subject<string>();
 
   constructor() { 
-    let url_test = "ws://95.118.15.8"
-    this.open(url_test);
+    let url_test = "ws://95.118.15.8";
+    let url_deploy = ((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host;
+    this.open(environment.production ? url_deploy : url_test);
   }
 
   public open = (wsUri: string) => {
