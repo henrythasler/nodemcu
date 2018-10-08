@@ -2,7 +2,12 @@
   <b>Lua Vehicle</b>
 </div>
 <div class="body paddings">
- <div class="data">{{data}}</div>
+  {{data?.temp | number:'1.1-1'}} °C
+ <div *ngIf="data">
+   ax: {{data.ax | number:'1.2-2'}} -  ay: {{data.ay | number:'1.2-2'}} -  az: {{data.az | number:'1.2-2'}} <br>
+   gx: {{data.gx | number:'1.2-2'}} -  gy: {{data.gy | number:'1.2-2'}} -  gz: {{data.gz | number:'1.2-2'}} <br>
+ </div>
+ <!-- <div class="data">{{stringify(data)}}</div> -->
  <hr>
  <textarea  type="textarea" class="text_box" [(ngModel)]="lua_script"></textarea>
  <button (click)="submitScript()">Run the Script</button>
