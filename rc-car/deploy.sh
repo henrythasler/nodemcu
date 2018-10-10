@@ -13,6 +13,7 @@
         scripts/htmlstatus.lua:usr/htmlstatus.lua \
         html/ajax.html:ajax.html \
         html/socket.html:socket.html \
-        html/index.html.gz:index.html.gz \
+        ../lua_car_frontend/data/index.html.gz:index.html.gz \
+        ../lua_car_frontend/data/favicon.ico:favicon.ico \
         ../flash/flashdaemon.lua:flashdaemon.lua \
 #    --verify=sha1
