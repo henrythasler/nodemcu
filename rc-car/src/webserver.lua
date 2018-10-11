@@ -67,7 +67,7 @@ if httpserver then
             if maxThreads <= 0 then
                 print("[http] - Server busy")
                 sck:on("sent", on_sent)
-                dofile("webserver-header.lc")(sck, 503, nil, false, {"Retry-After: 5"})
+                dofile("webserver-header.lc")(sck, 503, nil, false, {"Retry-After: 5"}, true)
                 maxThreads = maxThreads - 1
                 return
             end
@@ -112,7 +112,7 @@ if httpserver then
                     filesize = file.list()[request.uri.file]
                     bytesRemaining = filesize
                     sck:on("sent", on_sent)
-                    dofile("webserver-header.lc")(sck, 200, request.uri.ext, request.uri.isGzipped)
+                    dofile("webserver-header.lc")(sck, 200, request.uri.ext, request.uri.isGzipped, {}, true)
                 else
                     --print(request.uri.file .. " not found")
                     sck:on("sent", on_sent)

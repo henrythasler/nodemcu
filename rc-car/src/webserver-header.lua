@@ -1,4 +1,4 @@
-return function (conn, code, fileExt, isGzipped, extraHeaders)
+return function (conn, code, fileExt, isGzipped, extraHeaders, close)
     local codes = {
         [101] = " Switching Protocols",
         [200] = " OK",
@@ -37,7 +37,8 @@ return function (conn, code, fileExt, isGzipped, extraHeaders)
         end
     end
    
-    hdr[#hdr + 1] = "Connection: close\r\n\r\n"
+    if close then hdr[#hdr + 1] = "Connection: close\r\n" end
+    hdr[#hdr + 1] = "\r\n"
 
     conn:send(table.concat(hdr))
 end

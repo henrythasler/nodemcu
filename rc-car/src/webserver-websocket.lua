@@ -30,21 +30,22 @@ return function(sck, request)
 
     local function sendSensorData(local_conn)
         if sensor:isPresent() then
-            gpio.write(0, 1 - gpio.read(0)) -- toggle LED to indicate websocket-traffic
             local ax, ay, az = sensor:getAcceleration()
             local gx, gy, gz = sensor:getGyroscope()
-            local data = {
-                utc = rtctime.get(),
-                timestamp = tmr.now(),
-                temp = sensor:getTemp(),
-                ax = ax,
-                ay = ay,
-                az = az,
-                gx = gx,
-                gy = gy,
-                gz = gz
-            }
-            local_conn:send(encode(0x01, sjson.encode(data))) -- send as "Text" (0x01)
+            data =
+                string.format(
+                '{"ax":%f,"ay":%f,"az":%f,"gx":%f,"gy":%f,"gz":%f,"utc":%u,"temp":%f,"timestamp":%u}',
+                ax,
+                ay,
+                az,
+                gx,
+                gy,
+                gz,
+                rtctime.get(),
+                sensor:getTemp(),
+                tmr.now()
+            )
+            local_conn:send(encode(0x01, data)) -- send as "Text" (0x01)
             txBufferContent = txBufferContent + 1
         end
     end
@@ -127,7 +128,8 @@ return function(sck, request)
         101,
         nil,
         false,
-        {"Sec-WebSocket-Accept: " .. accept, "Upgrade: websocket", "Connection: Upgrade"}
+        {"Sec-WebSocket-Accept: " .. accept, "Upgrade: websocket", "Connection: Upgrade"},
+        false
     )
     print("[ws] - open")
     txBufferContent = txBufferContent + 1
