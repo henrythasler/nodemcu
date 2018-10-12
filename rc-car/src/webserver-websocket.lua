@@ -30,8 +30,8 @@ return function(sck, request)
 
     local function sendSensorData(local_conn)
         if sensor:isPresent() then
-            local ax, ay, az = sensor:getAcceleration()
-            local gx, gy, gz = sensor:getGyroscope()
+            local ax, ay, az, temperature, gx, gy, gz = sensor:readAll()
+            -- create json string
             data =
                 string.format(
                 '{"ax":%f,"ay":%f,"az":%f,"gx":%f,"gy":%f,"gz":%f,"utc":%u,"temp":%f,"timestamp":%u}',
@@ -42,7 +42,7 @@ return function(sck, request)
                 gy,
                 gz,
                 rtctime.get(),
-                sensor:getTemp(),
+                temperature,
                 tmr.now()
             )
             local_conn:send(encode(0x01, data)) -- send as "Text" (0x01)

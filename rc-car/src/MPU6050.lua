@@ -14,6 +14,8 @@ function MPU6050.init(self, pinSDA, pinSCL)
         if self:read_reg(0x75) == self.address then
             self:write_reg(0x6B, 0x01) -- PWR_MGMT_1: disable SLEEP and set CLKSEL to use PLL (x-Axis Gyro)
             self:write_reg(0x1C, 0x10) -- ACCEL_CONFIG: AFS_SEL=2 (8g)
+            self:write_reg(0x1a, 0x03) -- CONFIG: DLPF_CFG=3 (~40Hz)
+            self:write_reg(0x1b, 0x08) -- GYRO_CONFIG: FS_SEL=1 (500°/s)
             self.present = true
         end
     end
@@ -80,12 +82,24 @@ end
 
 function MPU6050.getGyroscope(self)
     -- register: GYRO_XOUT=0x43
-    -- scaling: Full-Scale 250°/s
+    -- scaling: Full-Scale 500°/s
     local data = self:read_burst(0x43, 6) -- read 6 consecutive bytes from sensor chip
-    local gx = self:toNumber(string.byte(data, 1), string.byte(data, 2)) / 131
-    local gy = self:toNumber(string.byte(data, 3), string.byte(data, 4)) / 131
-    local gz = self:toNumber(string.byte(data, 5), string.byte(data, 6)) / 131
+    local gx = self:toNumber(string.byte(data, 1), string.byte(data, 2)) / 65.5
+    local gy = self:toNumber(string.byte(data, 3), string.byte(data, 4)) / 65.5
+    local gz = self:toNumber(string.byte(data, 5), string.byte(data, 6)) / 65.5
     return gx, gy, gz
+end
+
+-- read all available data in one batch (3xAcceleration, 1xTemp, 3xGyroscope)
+function MPU6050.readAll(self)
+    local data = self:read_burst(0x3B, 14) -- read 14 consecutive bytes from sensor chip
+    return self:toNumber(string.byte(data, 1), string.byte(data, 2)) / 4096, 
+           self:toNumber(string.byte(data, 3), string.byte(data, 4)) / 4096, 
+           self:toNumber(string.byte(data, 5), string.byte(data, 6)) / 4096,
+           self:toNumber(string.byte(data, 7), string.byte(data, 8)) / 340 + 36.53,
+           self:toNumber(string.byte(data, 9), string.byte(data, 10)) / 65.5,
+           self:toNumber(string.byte(data, 11), string.byte(data, 12)) / 65.5,
+           self:toNumber(string.byte(data, 13), string.byte(data, 14)) / 65.5
 end
 
 -- create global sensor object
