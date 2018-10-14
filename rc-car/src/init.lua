@@ -175,7 +175,7 @@ if cfg.wifi.mode == wifi.SOFTAP then
     wifi.eventmon.register(
         wifi.eventmon.AP_STACONNECTED,
         function(T)
-            print("[init] - client connected (" .. T.MAC .. ")")
+            print("[init] - connected (" .. T.MAC .. ")")
         end
     )
 

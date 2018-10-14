@@ -118,5 +118,6 @@ RST|	Reset|	RST
 - https://nodemcu-build.com/
 - https://playground.arduino.cc/Main/MPU-6050
 - https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
+- https://www.i2cdevlib.com/devices/mpu6050#source
 - https://github.com/marcoskirsch/nodemcu-httpserver
 - https://tools.ietf.org/html/rfc6455

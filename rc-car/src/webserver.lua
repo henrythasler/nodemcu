@@ -48,7 +48,7 @@ if httpserver then
                     --print(request.uri.file .. ": Sent "..#chunk.. " bytes, " .. bytesRemaining .. " to go.")
                     fileHandle:close()
                 else
-                    print("[http] - File error")
+                    print("[http] - file error")
                     done = true
                 end
             else
@@ -65,7 +65,7 @@ if httpserver then
         local function on_receive(sck, data)
             -- limit concurrent connections to prevent RAM panic situations; reject client if currently busy
             if maxThreads <= 0 then
-                print("[http] - Server busy")
+                print("[http] - busy")
                 sck:on("sent", on_sent)
                 dofile("webserver-header.lc")(sck, 503, nil, false, {"Retry-After: 5"}, true)
                 maxThreads = maxThreads - 1
@@ -127,5 +127,5 @@ if httpserver then
     end)
     --print("[http] - waiting for connections")
 else
-    print("[http] - can't open socket")
+    print("[http] - socket error")
 end
