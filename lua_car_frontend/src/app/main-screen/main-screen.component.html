@@ -1,14 +1,44 @@
-<div class="header paddings">
-  <b>Lua Vehicle</b>
-</div>
-<div class="body paddings">
-  {{data?.temp | number:'1.1-1'}} °C
- <div *ngIf="data">
-   ax: {{data.ax | number:'1.2-2'}} -  ay: {{data.ay | number:'1.2-2'}} -  az: {{data.az | number:'1.2-2'}} <br>
-   gx: {{data.gx | number:'1.2-2'}} -  gy: {{data.gy | number:'1.2-2'}} -  gz: {{data.gz | number:'1.2-2'}} <br>
- </div>
- <!-- <div class="data">{{stringify(data)}}</div> -->
- <hr>
- <textarea  type="textarea" class="text_box" [(ngModel)]="lua_script"></textarea>
- <button (click)="submitScript()">Run the Script</button>
+<div class="container">
+  <div class="header">
+    <b>CDC Vehicle</b>
+  </div>
+  <div class="body">
+    <div class="rawdata">
+      <div class="element">
+        <div class="title">T</div>
+        <div class="databox">{{data.temp | number:'1.1-1'}}°C</div>
+      </div>
+    </div>
+    <div class="rawdata">
+      <div class="element">
+        <div class="title">a<sub>x</sub></div>
+        <div class="databox">{{data.ax | number:'1.1-1'}}g</div>
+      </div>
+      <div class="element">
+        <div class="title">a<sub>y</sub></div>
+        <div class="databox">{{data.ay | number:'1.1-1'}}g</div>
+      </div>
+      <div class="element">
+        <div class="title">a<sub>z</sub></div>
+        <div class="databox">{{data.az | number:'1.1-1'}}g</div>
+      </div>
+      <div class="element">
+        <div class="title">&omega;<sub>x</sub></div>
+        <div class="databox">{{data.gx | number:'1.1-1'}}</div>
+      </div>
+      <div class="element">
+        <div class="title">&omega;<sub>y</sub></div>
+        <div class="databox">{{data.gy | number:'1.1-1'}}</div>
+      </div>
+      <div class="element">
+        <div class="title">&omega;<sub>z</sub></div>
+        <div class="databox">{{data.gz | number:'1.1-1'}}</div>
+      </div>
+    </div>
+    <div class="orientationcontainer">
+      <img class="alert" src="assets/alert.png" *ngIf="flipped">
+      <div class="circle"></div>
+      <canvas #canvas width="250" height="250"></canvas>
+    </div>
+  </div>
 </div>

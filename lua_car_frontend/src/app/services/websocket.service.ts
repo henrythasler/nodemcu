@@ -14,7 +14,7 @@ export class WebsocketService {
   public subject_data = new Subject<string>();
 
   constructor() { 
-    let url_test = "ws://95.118.15.8";
+    let url_test = "ws://192.168.1.1";
     let url_deploy = ((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host;
     this.open(environment.production ? url_deploy : url_test);
   }
@@ -49,7 +49,7 @@ export class WebsocketService {
 
   private onMessage = (evt) => {
       let data = JSON.parse(JSON.stringify(evt.data));
-      console.log("WebsocketService::onMessage() ", data);
+      //console.log("WebsocketService::onMessage() ", data);
       let curTimestamp = this.getMsNow();
       // console.log(curTimestamp - this.lastTimestamp)
       this.avgFramerate = (this.avgFramerate + (curTimestamp - this.lastTimestamp)) / 2
