@@ -1,14 +1,17 @@
 # RC-Car sensor pod
 
-Placing a ESP-based device into a RC-car to provide sensor data.
+Placing a ESP-based device into an RC-car to provide sensor data.
+
+> If you are trying to implement a user-interface or HTTP webserver in your ESP8266 then you are really abusing its intended purpose. When it comes to scoping your ESP8266 applications, the adage Keep It Simple Stupid truly applies.
+
+Well...
 
 ## Feature set
 
-- Provide Wifi-AP 
-- Integrate into local Wifi via end_user_setup()
-- capture sensor data (tbd)
-- write sensor data to SQLite-DB (in-memory)
-- Provide webinterface with sensor information
+- Wifi-AP 
+- read sensor data via I2C
+- http-server
+- push sensor data via websocket to browser application
 
 ## Software
 
@@ -17,6 +20,7 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 1. clone this repo
 2. git submodule update --init --recursive
 3. Install python-dependency for esptool: `apt-get install python-serial`
+4. Add yourself to dialout usergroup (login afterwards to activate): `sudo usermod -a -G dialout $USER`
 
 ### Install ESP-firmware
 
@@ -24,9 +28,28 @@ Placing a ESP-based device into a RC-car to provide sensor data.
 2. and create an image with the following modules: 
 `bit crypto encoder file gpio i2c mdns net node rtctime sjson sntp struct tmr uart websocket wifi`
 3. Wait for notification e-mail and download the images with the links provided. 
-4. Flash image: 
+4. Erase flash. Only needed once before first flash: 
 ```
-$ sudo ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-modules-2018-09-23-09-01-43-float.bin 
+$ ./esptool/esptool.py erase_flash
+    esptool.py v2.5.1-dev
+    Found 2 serial ports
+    Serial port /dev/ttyUSB0
+    Connecting....
+    Detecting chip type... ESP8266
+    Chip is ESP8266EX
+    Features: WiFi
+    MAC: a0:20:a6:10:39:94
+    Uploading stub...
+    Running stub...
+    Stub running...
+    Erasing flash (this may take a while)...
+    Chip erase completed successfully in 9.2s
+    Hard resetting via RTS pin...
+
+```
+5. Flash image: 
+```
+$ ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-modules-2018-09-23-09-01-43-float.bin 
     esptool.py v2.5.1-dev
     Found 2 serial ports
     Serial port /dev/ttyUSB0
@@ -48,7 +71,7 @@ $ sudo ./esptool/esptool.py write_flash 0x00000 rc-car/image/nodemcu-master-23-m
     Leaving...
     Hard resetting via RTS pin...
 ```
-5. Check with: `sudo ./uploader/nodemcu-uploader.py terminal` (press reset-button to reboot nodemcu)
+6. Check with: `./uploader/nodemcu-uploader.py terminal` (press reset-button to reboot nodemcu)
 
 ```
 --- Miniterm on /dev/ttyUSB0  115200,8,N,1 ---
@@ -69,16 +92,16 @@ lua: cannot open init.lua
 
 Go to folder: `cd rc-car`
 
-#### ESPlorer GUI
+#### via ESPlorer GUI
 
 `sudo java -jar ../ESPlorer/ESPlorer.jar`
 
-#### Command line
+#### via Command line
 
-Modify deploy.sh as you see fit then run `./deploy.sh`
+Run `./deploy.sh` or modify `deploy.sh` as you apply changes. 
 
-- Remove files: `sudo ../uploader/nodemcu-uploader.py file remove init.lua config.lua flashdaemon.lua`
-- Terminal: `sudo ../uploader/nodemcu-uploader.py terminal`
+- Remove files: `../uploader/nodemcu-uploader.py file remove init.lua config.lua flashdaemon.lua`
+- Terminal: `../uploader/nodemcu-uploader.py terminal`
 
 ## Hardware
 
@@ -94,26 +117,27 @@ TX|	TXD|	TXD
 RX|	RXD|	RXD
 A0|	Analog input, max 3.3V input	|A0
 D0|	IO|	GPIO16
-D1|	IO, SCL	|GPIO5
-D2|	IO, SDA	|GPIO4
+`D1`|	IO, `SCL`	|`GPIO5`
+`D2`|	IO, `SDA`	|`GPIO4`
 D3|	IO, 10k Pull-up	|GPIO0
 D4|	IO, 10k Pull-up, BUILTIN_LED	|GPIO2
 D5|	IO, SCK	|GPIO14
 D6|	IO, MISO	|GPIO12
 D7|	IO, MOSI	|GPIO13
 D8|	IO, 10k Pull-down, SS	|GPIO15
-G	|Ground|	GND
-5V|	5V|	-
-3V3|	3.3V|	3.3V
+`G`	|`Ground`|	`GND`
+`5V`|	`5V`|	-
+`3V3`|	`3.3V`|	`3.3V`
 RST|	Reset|	RST
+`used pins`
 
-## Pinning GY-521 MCU-6050
+### Pinning GY-521 MCU-6050
 
 ![pinning](doc/MPU6050-V1-SCH.jpg)
 
-
 ## References
 
+- https://nodemcu.readthedocs.io/en/master/
 - https://frightanic.com/iot/comparison-of-esp8266-nodemcu-development-boards/
 - https://nodemcu-build.com/
 - https://playground.arduino.cc/Main/MPU-6050

@@ -50,9 +50,16 @@ local function wifi_monitor(config)
                 end
             else
                 print(string.format("[init] - %u Bytes free", node.heap()))
-                gpio.write(0,1);
-                tmr.alarm (3, 50, tmr.ALARM_SINGLE, function () gpio.write(0,0) end)
-      
+                gpio.write(0, 1)
+                tmr.alarm(
+                    3,
+                    50,
+                    tmr.ALARM_SINGLE,
+                    function()
+                        gpio.write(0, 0)
+                    end
+                )
+
                 if connected ~= true then
                     connected = true
                     gpio.write(0, 0)
@@ -117,8 +124,10 @@ end
 
 -- load config from file
 if run_lc("config") == false then
-    print("[init] - Config file not found. Using default values.")
+    print("[init] - using default cfg")
     cfg = {}
+
+    -- WIFI
     cfg.wifi = {}
     cfg.wifi.mode = wifi.SOFTAP
     cfg.wifi.ssid = "CDC"
@@ -129,18 +138,23 @@ if run_lc("config") == false then
     cfg.wifi.max = 4
     cfg.wifi.save = false
 
-    cfg.hostname = "car"
-
-    cfg.runnables = {}
-    cfg.runnables.sources = {}
-
-    cfg.ntp = {}
-    cfg.ntp.server = false
-
     cfg.net = {}
     cfg.net.ip = "192.168.1.1"
-    cfg.net.netmask="255.255.255.0"
-    cfg.net.gateway="192.168.1.1"
+    cfg.net.netmask = "255.255.255.0"
+    cfg.net.gateway = "192.168.1.1"
+
+    -- nodemcu
+    -- hostname: name of this nodemcu
+    cfg.hostname = "car"
+
+    -- Runnables
+    cfg.runnables = {}
+    cfg.runnables.sources = {"flashdaemon", "webserver", "MPU6050"}
+
+    -- NTP
+    -- cfg.ntp.server: IP address of NTP provider. Set to 'false' to disable sync
+    cfg.ntp = {}
+    cfg.ntp.server = false
 end
 
 cfg.runnables.active = {}
@@ -161,7 +175,7 @@ end
 wifi.sta.sethostname(cfg.hostname)
 
 -- setup GPIO
-gpio.mode(0, gpio.OUTPUT)   -- LED, if mounted
+gpio.mode(0, gpio.OUTPUT) -- LED, if mounted
 
 -- Set-up Wifi AP
 wifi.setmode(cfg.wifi.mode)
@@ -185,6 +199,25 @@ if cfg.wifi.mode == wifi.SOFTAP then
             print("[init] - disconnected (" .. T.MAC .. ")")
         end
     )
+
+    tmr.alarm(
+        0,
+        2000,
+        tmr.ALARM_AUTO,
+        function()
+            print(string.format("[init] - %u Bytes free", node.heap()))
+            gpio.write(0, 1)
+            tmr.alarm(
+                3,
+                50,
+                tmr.ALARM_SINGLE,
+                function()
+                    gpio.write(0, 0)
+                end
+            )
+        end
+    )
+
     start_runnables()
 elseif cfg.wifi.mode == wifi.STATION then
     print("[init] - Connecting to AP...")
