@@ -84,11 +84,14 @@
             }
 
             .alert {
+                color: red;
+                font-size: 40px;
+                font-weight: bold;
                 height: 30px;
                 position: absolute;
                 top: 0px;
                 left: 50%;
-                margin-left: -130px;
+                margin-left: -110px;
             }
         }
     }
