@@ -13,6 +13,12 @@ Well...
 - http-server
 - push sensor data via websocket to browser application
 
+## Usage
+
+1. Switch on vehicle. 
+2. Connect to Wifi-Network `CDC`.
+3. Point your browser to `car.local/` or `192.168.1.1/`
+
 ## Software
 
 ### Prerequisites
