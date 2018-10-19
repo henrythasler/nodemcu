@@ -5,11 +5,7 @@ local function encode(opcode, payload)
         string.char(bit.bor(0x80, opcode), bit.bor((len < 126) and len or ((len < 0x10000) and 126 or 127)))
     if len >= 0x10000 then
         frame[#frame + 1] =
-            string.char(
-            0,
-            0,
-            0,
-            0, -- 32 bit length is plenty, assume zero for rest
+            string.char(0, 0, 0, 0, -- 32 bit length is plenty, assume zero for rest
             bit.band(bit.rshift(len, 24), 0xff),
             bit.band(bit.rshift(len, 16), 0xff),
             bit.band(bit.rshift(len, 8), 0xff),

@@ -1,21 +1,3 @@
--- Compile additional modules
-local files = {
-    "webserver-request.lua",
-    "webserver-header.lua",
-    "webserver-websocket.lua"
-}
-for i, f in ipairs(files) do
-    if file.exists(f) then
-        --print("Compiling:", f)
-        node.compile(f)
-        file.remove(f)
-        collectgarbage()
-    end
-end
-
-files = nil
-collectgarbage()
-
 maxThreads = 1
 
 local httpserver = net.createServer(net.TCP, 30)
