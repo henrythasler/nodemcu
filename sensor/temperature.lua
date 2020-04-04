@@ -94,5 +94,5 @@ m:connect(cfg.mqtt.broker.host, cfg.mqtt.broker.port, 0, 1,
         end)
       end,
       function(client, reason)
-        print("MQTT - error connecting to "..cfg.mqtt.broker.host..cfg.mqtt.broker.port..": "..reason)
+        print("MQTT - error connecting to "..cfg.mqtt.broker.host..":"..cfg.mqtt.broker.port.." "..reason)
       end)

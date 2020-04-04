@@ -11,7 +11,7 @@ const path = require('path');
 
 
 const cfg = {
-  host: "car.local",
+  host: "node01.fritz.box",
   port: 81
 };
 

@@ -19,7 +19,7 @@ cfg.runnables.sources = {"flashdaemon", "temperature"}
 -- port: port where the broker can be reached
 cfg.mqtt = {}
 cfg.mqtt.broker = {}
-cfg.mqtt.broker.host = "192.168.178.25"
+cfg.mqtt.broker.host = "192.168.178.31"
 cfg.mqtt.broker.port = 1883
 
 -- NTP
