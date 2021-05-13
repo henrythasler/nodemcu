@@ -44,9 +44,9 @@ Connect either BME280 or BMP180. E-Version is with humidity sensor and 280 is th
 `nano /home/pi/kiosk.sh`
 ```sh
 #!/bin/bash
-xset s noblank
-xset s off
-xset -dpms
+#xset s noblank
+#xset s off
+#xset -dpms
 
 unclutter -idle 0.5 -root &
 
