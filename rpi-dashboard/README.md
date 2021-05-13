@@ -111,6 +111,3 @@ The Dashboard can be found in the Internet Section:
 
 - [Raspberry Pi Pinout](https://pinout.xyz/pinout/i2c#)
 - [Raspberry Pi Kiosk using Chromium](https://pimylifeup.com/raspberry-pi-kiosk/)
-
-sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromium/Default/Preferences
-sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
