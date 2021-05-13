@@ -26,12 +26,66 @@ Connect either BME280 or BMP180. E-Version is with humidity sensor and 280 is th
 - `Interface Options` -> enable `P3 VNC` and `P5 I2C`
 - `Display Options` -> `Resolution` -> `Mode 9 (800x600)`
 4. `sudo rebooot now`
-5. [Install Node-RED](https://nodered.org/docs/getting-started/raspberrypi)
-6. Install mosquitto MQTT Broker: 
+
+## User Interface
+
+1. [Install Node-RED](https://nodered.org/docs/getting-started/raspberrypi)
+2. Install mosquitto MQTT Broker: 
  - `sudo apt-get install mosquitto mosquitto-clients`
  - Test with: `mosquitto_sub -h localhost -t \$SYS/broker/bytes/#`
- 7. Open node-red in a browser (`http://raspberrypi:1880/`) and import `flows.json`.
+3. Open node-red in a browser (`http://raspberrypi:1880/`) and import `flows.json`.
+
+## Kiosk Mode
+
+`sudo apt install unclutter`
+
+`nano /home/pi/kiosk.sh`:
+```sh
+#!/bin/bash
+
+xset s noblank
+xset s off
+xset -dpms
+
+unclutter -idle 0.5 -root &
+
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromium/Default/Preferences
+sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
+/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost:1880/ui &
+```
+`chmod +x /home/pi/kiosk.sh`
+
+run `echo $DISPLAY` from a GUI-shell (NOT ssh-session) and use the result in the following file.
+
+`sudo nano /lib/systemd/system/kiosk.service`:
+```ini
+[Unit]
+Description=Chromium Kiosk
+Wants=graphical.target
+After=graphical.target
+
+[Service]
+Environment=DISPLAY=:0.0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+Type=simple
+ExecStart=/bin/bash /home/pi/kiosk.sh
+Restart=on-abort
+User=pi
+Group=pi
+
+[Install]
+WantedBy=graphical.target
+```
+
+enable on boot: `sudo systemctl enable kiosk.service` 
+
+start immediately: `sudo systemctl start kiosk.service`
+
 
 # References
 
 - [Raspberry Pi Pinout](https://pinout.xyz/pinout/i2c#)
+- [Raspberry Pi Kiosk using Chromium](https://pimylifeup.com/raspberry-pi-kiosk/)
+
+sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromium/Default/Preferences
+sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
