@@ -1,5 +1,7 @@
 # Introduction
 
+![Dashboard](docs/dashboard.png)
+
 # Hardware
 
 ## Parts
@@ -39,10 +41,9 @@ Connect either BME280 or BMP180. E-Version is with humidity sensor and 280 is th
 
 `sudo apt install unclutter`
 
-`nano /home/pi/kiosk.sh`:
+`nano /home/pi/kiosk.sh`
 ```sh
 #!/bin/bash
-
 xset s noblank
 xset s off
 xset -dpms
@@ -52,15 +53,19 @@ unclutter -idle 0.5 -root &
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromium/Default/Preferences
 sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
 /usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost:1880/ui &
+
+while true; do
+      sleep 1
+done
 ```
-`chmod +x /home/pi/kiosk.sh`
+Make it executable: `chmod +x /home/pi/kiosk.sh`
 
-run `echo $DISPLAY` from a GUI-shell (NOT ssh-session) and use the result in the following file.
+run `echo $DISPLAY` from a GUI-shell (NOT ssh-session) and use the result in the following file:
 
-`sudo nano /lib/systemd/system/kiosk.service`:
+`sudo nano /etc/systemd/system/kiosk.service`:
 ```ini
 [Unit]
-Description=Chromium Kiosk
+Description=Chromium_Kiosk
 Wants=graphical.target
 After=graphical.target
 
@@ -79,8 +84,28 @@ WantedBy=graphical.target
 
 enable on boot: `sudo systemctl enable kiosk.service` 
 
-start immediately: `sudo systemctl start kiosk.service`
+start: `sudo systemctl start kiosk.service`
+stop: `sudo systemctl stop kiosk.service`
 
+## Application Icon
+
+`sudo nano /usr/share/applications/Dashboard.desktop`
+
+```
+[Desktop Entry]
+Version=1.0
+Exec=sudo systemctl start kiosk
+Name=Dashboard
+Encoding=UTF-8
+Terminal=true
+Type=Application
+Categories=Application;Network;
+Icon=ksysguard
+```
+
+The Dashboard can be found in the Internet Section:
+
+![Dashboard](docs/dashboard-menu.png)
 
 # References
 
