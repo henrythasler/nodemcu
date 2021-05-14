@@ -1,3 +1,4 @@
 #config.lua
 ESPlorer.Log
 rpi-dashboard/videos/*.gif
+.DS_Store
