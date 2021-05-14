@@ -52,7 +52,8 @@ unclutter -idle 0.5 -root &
 
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromium/Default/Preferences
 sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
-/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost:1880/ui &
+#/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost:1880/ui &
+/usr/bin/chromium-browser --disable-infobars --kiosk --enable-logging=stderr http://localhost:1880/ui &
 
 while true; do
       sleep 1
@@ -106,6 +107,10 @@ Icon=ksysguard
 The Dashboard can be found in the Internet Section:
 
 ![Dashboard](docs/dashboard-menu.png)
+
+## Media Files
+
+Copy all media files (images/videos) to `~/.node-red/lib/ui-media/lib/Videos/` and re-deploy the flow.
 
 # References
 
