@@ -180,6 +180,10 @@ mosquitto| base.wlan | 192.168.1.1
 
 Check on connected clients with `iw dev wlan0 station dump` and `cat /var/lib/misc/dnsmasq.leases`.
 
+# Improvements
+
+- Use a [MPU-9250](https://www.amazon.de/MakerHawk-MPU-9250-Modul-Achs-Gyroskop-Beschleunigungsmesser-Magnetfeld-Sensor/dp/B07173R5QC) or similar as motion tracking device. See also: https://github.com/henrythasler/iot/tree/master/sensors/MPU-9250 
+
 # References
 
 - [Raspberry Pi Pinout](https://pinout.xyz/pinout/i2c#)
