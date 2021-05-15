@@ -178,6 +178,8 @@ Service | Hostname | IP-Address
 ---|---|---
 mosquitto| base.wlan | 192.168.1.1
 
+Check on connected clients with `iw dev wlan0 station dump` and `cat /var/lib/misc/dnsmasq.leases`.
+
 # References
 
 - [Raspberry Pi Pinout](https://pinout.xyz/pinout/i2c#)
