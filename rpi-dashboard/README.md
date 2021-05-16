@@ -173,6 +173,7 @@ Reboot to enable: `sudo reboot now`
 ## Connecting Wifi clients
 
 AP-Name: `Telemetry`
+Wifi-Password: `virtualbusadapter`
 
 Service | Hostname | IP-Address
 ---|---|---
