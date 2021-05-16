@@ -1,4 +1,4 @@
-#include "helper.h"
+#include "Helper.h"
 #include <Arduino.h>
 
 unsigned long millisSinceStart()

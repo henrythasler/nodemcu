@@ -7,7 +7,7 @@ int  conf_wifi_reset_after_ms     = 9000;
 int  conf_mqtt_reset_after_ms     = 5000;
 
 // MQTT Settings:
-const char *mqtt_broker_url = "192.168.2.109";
+const char *mqtt_broker_url = "base.wlan";
 const int   mqtt_broker_port = 1883;
 const char* mqtt_client_name = "RcCar";
 

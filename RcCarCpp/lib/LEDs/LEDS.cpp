@@ -1,4 +1,4 @@
-#include "LEDs.h"
+#include "LEDS.h"
 
 void LEDs::setup(){
     led_int.setup();
