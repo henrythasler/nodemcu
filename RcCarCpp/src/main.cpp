@@ -27,6 +27,7 @@ short-circuit current is 5 mA. Even at 5V it's max 25mW. BPW40 can handle up to 
 #include <transmitter.h>
 #include <HardwareSerial.h>
 #include "GY521.h"
+#include <madgwickFilter.h>
 
 GY521 sensor(0x68); // 0x68 => AD0 connected to ground, 0x69 => AD0 connected to VCC
 uint32_t counter = 0;
@@ -42,6 +43,7 @@ Transmitter transmitter = Transmitter(&mqtt_client, &reading, &leds);
 
 const int format_buffer_size = 128;
 char format_buffer[format_buffer_size];
+unsigned long millis_last_imu_read = 0;
 
 
 void wifiSetup()
@@ -111,8 +113,8 @@ void setup()
       Serial.println("\tCould not connect to GY521");
       delay(1000);
     }
-    sensor.setAccelSensitivity(2);  // 8g
-    sensor.setGyroSensitivity(1);   // 500 degrees/s
+    sensor.setAccelSensitivity(2);  // 8g | 0,1,2,3 ==> 2g 4g 8g 16g
+    sensor.setGyroSensitivity(1);   // 500 degrees/s | 250, 500, 1000, 2000 degrees/second
 
     sensor.setThrottle();
     Serial.println("start...");
@@ -198,7 +200,12 @@ void loop()
   float gyro_x = sensor.getGyroX();
   float gyro_y = sensor.getGyroY();
   float gyro_z = sensor.getGyroZ();
-
+   /*
+    imu_yaw:   (almost) stable angle of the sensor when viewed from atop (direction)
+    imu_roll:  (almost) stable angle of the sensor when viewed from back (amount wingtip up/down)
+    imu_pitch: (almost) stable angle of the sensor when viewed from side (amount nose up/down)
+    */
+   // printf("i: %d, roll: %f, pitch: %f, yaw: %f\n", loop_count, imu_roll, imu_pitch, imu_yaw);
 
   boolean reset = reading.count == 0; // was transmitted
   if (reset) {
@@ -224,6 +231,7 @@ void loop()
     reading.pitch   += pitch;
     reading.roll    += roll;
     reading.yaw     += yaw;
+  
     reading.acc_x   += acc_x;
     reading.acc_y   += acc_y;
     reading.acc_z   += acc_z;
@@ -235,7 +243,35 @@ void loop()
     reading.gyro_z  += gyro_z;
     reading.temp    += temp;
   }
+
+  boolean reset_imu = reading.count_imu == 0; // was transmitted
+
+  float imu_interval_ms = 1000 / conf_imu_sample_freq_hz;
+  int diff_ms = m_read - millis_last_imu_read;
+  boolean read_imu = diff_ms > imu_interval_ms;
+  if (read_imu && conf_imu_sample_interval_ms != conf_transmit_all_interval_ms) {
+    millis_last_imu_read = m_read;
+    float imu_roll = 0.0, imu_pitch = 0.0, imu_yaw = 0.0;
+    if (loop_count == 1) {
+        diff_ms = imu_interval_ms;
+    }
+    imu_filter(acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, diff_ms);
+    eulerAngles(q_est, &imu_roll, &imu_pitch, &imu_yaw);
+    if (reset_imu) {
+        reading.count_imu   = 1;
+        reading.imu_pitch   = imu_pitch;
+        reading.imu_roll    = imu_roll;
+        reading.imu_yaw     = imu_yaw;
+    } else {
+        reading.count_imu   += 1;
+        reading.imu_pitch   += imu_pitch;
+        reading.imu_roll    += imu_roll;
+        reading.imu_yaw     += imu_yaw;
+    }
+  }
+
   counter++;
+  
 
   leds.loop();
   transmitter.loop();

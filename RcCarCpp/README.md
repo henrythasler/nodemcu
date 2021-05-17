@@ -13,3 +13,10 @@
 ## Parmeters
 - Have a look at lib/config/config.cpp
 - Change the IP of the MQTT Server and other paramters here
+
+
+# Observations:
+- Tests showed:
+ - at least for yaw, the "normal" yaw has less drift as the imu_yaw (with quaternation filter).
+ - for yaw, the "yaw" value has better accuracy in degrees compared to reality compared to imu_yaw
+ - Use ang_x and ang_y for acceleration in x/y direction!

@@ -25,6 +25,8 @@ class StringAdd {
       void add(unsigned long num);
       void add(float num);
       void add(double num);
+      void add(float num, int total_chars, int after_digit_chars);
+      void add(double num, int total_chars, int after_digit_chars);
       char* getBuff();
       void free(); // free the memory if internal buffer!
 };

@@ -9,11 +9,15 @@
 
 struct Readings {
     int    count;
+    int    count_imu;
     unsigned long m_first;
     unsigned long m_last;
     double pitch;
     double roll;
     double yaw;
+    double imu_pitch;
+    double imu_roll;
+    double imu_yaw;
     double acc_x;
     double acc_y;
     double acc_z;
@@ -36,6 +40,7 @@ class Transmitter {
         int last_tx_ms = -1;
     public:
         char json_buffer[json_buffer_size];
+        char print_buffer[print_buffer_size];
     private:
         void transmitAll(unsigned long millis_now);
         void transmit_mqtt_internal(const char *topic, const char *msg, bool retained);

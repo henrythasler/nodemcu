@@ -14,7 +14,14 @@ extern const char *mqtt_broker_url;
 extern const int   mqtt_broker_port;
 extern const char* mqtt_client_name;
 
-extern int conf_transmit_all_interval_ms;
+extern int   conf_transmit_all_interval_ms;
+extern float conf_sample_freq_hz;
+extern float conf_sample_delta_sec;
+
+extern int   conf_imu_sample_interval_ms;
+extern float conf_imu_sample_freq_hz;
+extern float conf_imu_sample_delta_sec;
+
 extern const char* conf_mqtt_topic_readings;
 
 extern bool   use_wifi;

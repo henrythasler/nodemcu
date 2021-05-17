@@ -11,10 +11,16 @@ const char *mqtt_broker_url = "192.168.2.109";
 const int   mqtt_broker_port = 1883;
 const char* mqtt_client_name = "RcCar";
 
-int conf_transmit_all_interval_ms  = 50; // 50 times per second => 1000 / 20 = 50 
+int conf_transmit_all_interval_ms  = 20; // 50 times per second => 1000 / 20 = 50 
+float conf_sample_freq_hz = 1000 / (float) conf_transmit_all_interval_ms;
+float conf_sample_delta_sec = 1.0f / (float) conf_sample_freq_hz;
 const char* conf_mqtt_topic_readings = "RcCar/acceleration";
 
-bool        use_wifi = true;
+int conf_imu_sample_interval_ms = 20; // if set to same value as conf_transmit_all_interval_ms, the computation is based on the averaged values in last interval! perferable!
+float conf_imu_sample_freq_hz =   1000 / (float) conf_imu_sample_interval_ms;
+float conf_imu_sample_delta_sec = 1.0f / conf_imu_sample_freq_hz;
+
+bool        use_wifi = false;
 
 // DNS Name of the Device:
 const char *dns_name = "RcCar";

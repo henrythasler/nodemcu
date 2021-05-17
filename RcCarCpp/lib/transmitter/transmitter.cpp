@@ -4,7 +4,9 @@
 #include <config.h>
 #include <JsonObjectStr.h>
 #include <Helper.h>
-          
+    
+#include <madgwickFilter.h>
+
 // # Note: max Packet size is 128 characters (MQTT_MAX_PACKET_SIZE)!
 // Where: MQTT_MAX_HEADER_SIZE = 5
 // Packet size is: MQTT_MAX_HEADER_SIZE + 2 + strlen(topic) + plength
@@ -87,8 +89,8 @@ void Transmitter::loop(){
     }
 
     if (elapsed_since_tx > conf_transmit_all_interval_ms){
-        last_transmit_ms = millis_now;
         transmitAll(millis_now);
+        last_transmit_ms = millis_now;
     }
 }
 
@@ -112,13 +114,40 @@ void Transmitter::transmitAll(unsigned long millis_now){
     readings_->roll  = readings_->roll / count;
     readings_->pitch = readings_->pitch / count;
 
+    int count_imu = readings_->count_imu;
+    readings_->imu_yaw   = readings_->imu_yaw / count_imu;
+    readings_->imu_roll  = readings_->imu_roll / count_imu;
+    readings_->imu_pitch = readings_->imu_pitch / count_imu;
+
     readings_->temp = readings_->temp / count;
+
+    int add = 0;
+    if (conf_imu_sample_interval_ms == conf_transmit_all_interval_ms){
+        int diff_ms = millis_now - last_transmit_ms;
+        if (diff_ms > 1.2 * conf_transmit_all_interval_ms) {
+            diff_ms = 0;
+        }
+
+        float imu_roll = 0.0, imu_pitch = 0.0, imu_yaw = 0.0;
+        imu_filter((float) (readings_->acc_x), (float) (readings_->acc_y), (float) (readings_->acc_z), 
+                    (float) (readings_->gyro_x), (float) (readings_->gyro_y), (float) (readings_->gyro_z), diff_ms);
+        eulerAngles(q_est, &imu_roll, &imu_pitch, &imu_yaw);
+        add = diff_ms;
+
+        readings_->imu_yaw = imu_yaw;
+        readings_->imu_roll = imu_roll;
+        readings_->imu_pitch = imu_pitch;
+    }
 
     json.add("temp", readings_->temp);
 
     json.add("yaw", readings_->yaw);
     json.add("roll", readings_->roll);
     json.add("pitch", readings_->pitch);
+
+    json.add("imu_yaw", readings_->imu_yaw);
+    json.add("imu_roll", readings_->imu_roll);
+    json.add("imu_pitch", readings_->imu_pitch);
 
     json.add("gyro_x", readings_->gyro_x);
     json.add("gyro_y", readings_->gyro_y);
@@ -146,29 +175,41 @@ void Transmitter::transmitAll(unsigned long millis_now){
         Serial.printf("TransmitAll in %d ms\n", last_tx_ms);
     }
 
-    if (conf_debug_serial){
-        Serial.print(readings_->count);
-        Serial.print('\t');
-        Serial.print(millis());
-        Serial.print('\t');
-        Serial.print(readings_->pitch, 3);
-        Serial.print('\t');
-        Serial.print(readings_->roll, 3);
-        Serial.print('\t');
-        Serial.print(readings_->yaw, 3);
-        Serial.print("\t| ");
-        Serial.print(readings_->acc_x, 3);
-        Serial.print('\t');
-        Serial.print(readings_->acc_y, 3);
-        Serial.print("\t-| ");
-        Serial.print(readings_->ang_x, 3);
-        Serial.print('\t');
-        Serial.print(readings_->ang_x, 3);
-        Serial.print("\t| ");
-        Serial.print(readings_->temp, 3);
-        Serial.println();
+    if (conf_debug_serial) {
+        StringAdd str(print_buffer, print_buffer_size);
+        str.add(readings_->count);
+        str.add(" ");
+        str.add(millis());
+        str.add(" ");
+        str.add(readings_->pitch, 7, 2);
+        str.add(" ");
+        str.add(readings_->roll, 7, 2);
+        str.add(" ");
+        str.add(readings_->yaw, 7, 2);
+        str.add(" ");
+        str.add(readings_->imu_yaw, 7, 2);
+        str.add(" ");
+        str.add(readings_->count_imu);
+        str.add(" ");
+        str.add(add);
+        str.add(" | ");
+        str.add(readings_->acc_x, 7, 2);
+        str.add(" ");
+        str.add(readings_->acc_y, 7, 2);
+        str.add(" | ");
+        str.add(readings_->ang_x, 7, 2);
+        str.add(" ");
+        str.add(readings_->ang_y, 7, 2);
+        str.add(" | ");
+        str.add(readings_->gyro_x, 7, 2);
+        str.add(" ");
+        str.add(readings_->gyro_y, 7, 2);
+        str.add(" | ");
+        str.add(readings_->temp, 5, 1);
+        Serial.println(str.getBuff());
     }
 
     readings_->count = 0;
+    readings_->count_imu = 0;
 }
 

@@ -68,8 +68,22 @@ void StringAdd::add(float num){
   mem[pos * sizeof(char)] = '\0'; // string end terminator
 }
 
+void StringAdd::add(float num, int total_chars, int after_digit_chars){
+  dtostrf(num,total_chars,after_digit_chars,buff);
+  strncpy(mem + pos, buff, strlen(buff));
+  pos += strlen(buff);
+  mem[pos * sizeof(char)] = '\0'; // string end terminator
+}
+
 void StringAdd::add(double num){
   dtostrf(num,3,3,buff);
+  strncpy(mem + pos, buff, strlen(buff));
+  pos += strlen(buff);
+  mem[pos * sizeof(char)] = '\0'; // string end terminator
+}
+
+void StringAdd::add(double num, int total_chars, int after_digit_chars ){
+  dtostrf(num,total_chars,after_digit_chars,buff);
   strncpy(mem + pos, buff, strlen(buff));
   pos += strlen(buff);
   mem[pos * sizeof(char)] = '\0'; // string end terminator
