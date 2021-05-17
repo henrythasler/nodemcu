@@ -7,7 +7,7 @@ int  conf_wifi_reset_after_ms     = 9000;
 int  conf_mqtt_reset_after_ms     = 5000;
 
 // MQTT Settings:
-const char *mqtt_broker_url = "base.wlan";
+const char *mqtt_broker_url = "base.wlan"; // base.wlan
 const int   mqtt_broker_port = 1883;
 const char* mqtt_client_name = "RcCar";
 
@@ -20,7 +20,7 @@ int conf_imu_sample_interval_ms = 20; // if set to same value as conf_transmit_a
 float conf_imu_sample_freq_hz =   1000 / (float) conf_imu_sample_interval_ms;
 float conf_imu_sample_delta_sec = 1.0f / conf_imu_sample_freq_hz;
 
-bool        use_wifi = false;
+bool use_wifi = true;
 
 // DNS Name of the Device:
 const char *dns_name = "RcCar";
