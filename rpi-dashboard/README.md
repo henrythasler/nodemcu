@@ -33,10 +33,22 @@ Connect either BME280 or BMP180. E-Version is with humidity sensor and 280 is th
 ## User Interface
 
 1. [Install Node-RED](https://nodered.org/docs/getting-started/raspberrypi)
-2. Install mosquitto MQTT Broker: 
+2. Install the following nodes via the palette menu:
+
+```
+node-red-contrib-bme280
+node-red-contrib-simpletime
+node-red-contrib-ui-clock
+node-red-contrib-ui-media
+node-red-dashboard
+node-red-contrib-ui-value-trail
+node-red-contrib-fs
+```
+
+3. Install mosquitto MQTT Broker: 
  - `sudo apt-get install mosquitto mosquitto-clients`
  - Test with: `mosquitto_sub -h localhost -t \$SYS/broker/bytes/#`
-3. Open node-red in a browser (`http://raspberrypi:1880/`) and import `flows.json`.
+4. Open node-red in a browser (`http://raspberrypi:1880/`) and import `flows.json`.
 
 ## Kiosk Mode
 
