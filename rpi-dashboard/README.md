@@ -37,7 +37,6 @@ Connect either BME280 or BMP180. E-Version is with humidity sensor and 280 is th
 
 ```
 node-red-contrib-bme280
-node-red-contrib-simpletime
 node-red-contrib-ui-clock
 node-red-contrib-ui-media
 node-red-dashboard
