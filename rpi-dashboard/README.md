@@ -1,6 +1,7 @@
 # Introduction
 
 ![Dashboard](docs/dashboard.png)
+![Telemetry](docs/dashboard-telemetry.png)
 
 # Hardware
 
@@ -191,6 +192,12 @@ Service | Hostname | IP-Address
 mosquitto| base.wlan | 192.168.1.1
 
 Check on connected clients with `iw dev wlan0 station dump` and `cat /var/lib/misc/dnsmasq.leases`.
+
+## Telemetry simulation
+
+1. copy `test/record_mqtt` to raspi
+2. install mqtt-recorder: `pip3 install mqtt-recorder`. Maybe do a reboot to update PATH settings.
+3. run with `mqtt-recorder --host 127.0.0.1 --port 1883 --mode replay --file record_mqtt --loop 100`
 
 # Improvements
 
