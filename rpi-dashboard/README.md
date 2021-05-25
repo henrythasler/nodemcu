@@ -50,6 +50,15 @@ node-red-contrib-fs
  - Test with: `mosquitto_sub -h localhost -t \$SYS/broker/bytes/#`
 4. Open node-red in a browser (`http://raspberrypi:1880/`) and import `flows.json`.
 
+
+## Hostname
+
+Set hostname to 'base' by changing content in /etc/hostname to 'base' via:
+`nano /etc/hostname`
+
+Afterwards reboot for changes to apply
+`sudo reboot`
+
 ## Kiosk Mode
 
 `sudo apt install unclutter`
@@ -81,7 +90,7 @@ run `echo $DISPLAY` from a GUI-shell (NOT ssh-session) and use the result in the
 [Unit]
 Description=Chromium_Kiosk
 Wants=graphical.target
-After=graphical.target
+After=graphical.target nodered.service
 
 [Service]
 Environment=DISPLAY=:0.0
