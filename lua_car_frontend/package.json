@@ -50,7 +50,7 @@
     "ts-node": "~5.0.1",
     "tslint": "~5.9.1",
     "typescript": "~2.7.2",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-clean-css": "^2.0.10",
     "gulp-gzip": "^1.4.0",
     "gulp-htmlmin": "^2.0.0",
